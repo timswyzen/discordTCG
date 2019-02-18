@@ -1,0 +1,4 @@
+To add a custom card to your discordTCG bot:
+1. Create a new file in the "cards" folder, named <yourcard>.py
+2. Copy the code of any other card, and fill in the variables in caps as you'd like
+3. Edit the function to do what you want it to. API can be found at <link>
