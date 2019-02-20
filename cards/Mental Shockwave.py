@@ -2,18 +2,22 @@
 
 from cardList import addCard
 import tcgpowers, mechanics
+import random
 
 #Simple variables
-NAME = "Snipe"
-COST = 2
+NAME = "Mental Shockwave"
+COST = 1
 RARITY = 'C'
-DESC = "Destroys an enemy Node (they still gain life)."
-TARGETS = "ENEMY_NODE"
+DESC = "Sacrifice a random Node. If you do, your opponent burns 3 cards."
+TARGETS = None
 TYPE = "NodeInteraction"
 
 #What happens when you play it
 def playFunc(ply, enemy, target):
-	mechanics.sacNode(enemy,ply,target)
+	if len(ply.nodes) > 0:
+		target = random.randint(0,len(ply.nodes)-1)
+		mechanics.sacNode(ply, enemy, target)
+		enemy.burn( 3 )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

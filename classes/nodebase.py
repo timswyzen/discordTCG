@@ -2,9 +2,10 @@
 
 class GameNode:
 	#Set up the Node object
-	def __init__(self, name, description, ability, energy, deathAbility):
+	def __init__(self, name, description, ability, oneTimeAbility, energy, deathAbility):
 		self.name = name
 		self.func = ability #should trigger start of your turn
+		self.spawnFunc = oneTimeAbility
 		self.desc = description
 		self.energy = energy
 		self.deathFunc = deathAbility

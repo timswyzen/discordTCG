@@ -4,15 +4,17 @@ from cardList import addNode
 import tcgpowers
 
 #Simple variables
-NAME = "Puncher"
-DESC = "Deals 1 damage to your opponent each turn."
+NAME = "Lesser Leech"
+DESC = "At the end of your turn, deal 2 damage to your opponent. Gain lifeforce equal to the damage dealt."
 ENERGY = -1
 
 #What happens when you play it
 def playFunc(ply,enemy):
-	print( "Dealt 1 damage to " + enemy.name )
-	enemy.lifeforce = enemy.lifeforce - 1
+	enemy.lifeforce = enemy.lifeforce - 2
+	ply.lifeforce = ply.lifeforce + 2
+	return
 	
+#Abilities that only happens when the Node is spawned
 def oneTimeFunc(ply,enemy):
 	return
 	

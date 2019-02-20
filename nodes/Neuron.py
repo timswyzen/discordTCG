@@ -4,15 +4,16 @@ from cardList import addNode
 import tcgpowers
 
 #Simple variables
-NAME = "Puncher"
-DESC = "Deals 1 damage to your opponent each turn."
-ENERGY = -1
+NAME = "Neuron"
+DESC = "At the start of your turn, draw a card."
+ENERGY = -4
 
-#What happens when you play it
+#What happens when you play it (at the start of your turn)
 def playFunc(ply,enemy):
-	print( "Dealt 1 damage to " + enemy.name )
-	enemy.lifeforce = enemy.lifeforce - 1
+	ply.drawCard()
+	return
 	
+#Abilities that only happens when the Node is spawned
 def oneTimeFunc(ply,enemy):
 	return
 	

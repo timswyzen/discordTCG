@@ -7,12 +7,13 @@ import tcgpowers
 NAME = "Get Puncher"
 COST = 1
 RARITY = 'C'
-DESC = "Gives you a Puncher node."
+DESC = "Spawns a Puncher node."
 TARGETS = None
+TYPE = "NodeGen"
 
 #What happens when you play it
 def playFunc(ply, enemy, target):
-	ply.addNode( 'Puncher', -1 )
+	ply.addNode( 'Puncher' )
 	
-addCard( NAME, COST, RARITY, DESC, TARGETS, playFunc )
+addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

@@ -4,14 +4,13 @@ from cardList import addNode
 import tcgpowers
 
 #Simple variables
-NAME = "Puncher"
-DESC = "Deals 1 damage to your opponent each turn."
-ENERGY = -1
+NAME = "Prayer"
+DESC = "Gain 1 extra lifeforce from energy for each Node you control."
+ENERGY = -2
 
 #What happens when you play it
 def playFunc(ply,enemy):
-	print( "Dealt 1 damage to " + enemy.name )
-	enemy.lifeforce = enemy.lifeforce - 1
+	return
 	
 def oneTimeFunc(ply,enemy):
 	return

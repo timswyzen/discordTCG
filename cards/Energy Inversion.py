@@ -4,16 +4,16 @@ from cardList import addCard
 import tcgpowers, mechanics
 
 #Simple variables
-NAME = "Snipe"
-COST = 2
-RARITY = 'C'
-DESC = "Destroys an enemy Node (they still gain life)."
-TARGETS = "ENEMY_NODE"
-TYPE = "NodeInteraction"
+NAME = "Energy Inversion"
+COST = 4
+RARITY = 'R'
+DESC = "Your opponent gains lifeforce equal to your total energy (counts negative numbers)."
+TARGETS = None
+TYPE = "PlyInteraction"
 
 #What happens when you play it
 def playFunc(ply, enemy, target):
-	mechanics.sacNode(enemy,ply,target)
+	enemy.lifeforce = enemy.lifeforce + ply.energy
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

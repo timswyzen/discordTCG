@@ -4,16 +4,16 @@ from cardList import addCard
 import tcgpowers, mechanics
 
 #Simple variables
-NAME = "Snipe"
-COST = 2
+NAME = "Last Meal"
+COST = 3
 RARITY = 'C'
-DESC = "Destroys an enemy Node (they still gain life)."
-TARGETS = "ENEMY_NODE"
-TYPE = "NodeInteraction"
+DESC = "Deal damage to your opponent equal to 25% of their hunger, rounded up."
+TARGETS = None
+TYPE = "PlyInteraction"
 
 #What happens when you play it
 def playFunc(ply, enemy, target):
-	mechanics.sacNode(enemy,ply,target)
+	enemy.lifeforce = enemy.lifeforce - round( 0.25*enemy.hunger )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

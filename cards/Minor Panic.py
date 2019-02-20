@@ -7,12 +7,13 @@ import tcgpowers
 NAME = "Minor Panic"
 COST = 2
 RARITY = 'C'
-DESC = "Permanently increase your desperation by 1."
+DESC = "Permanently increase your Desperation by 5."
 TARGETS = None
+TYPE = "Buff"
 
 #What happens when you play it
 def playFunc(ply, enemy, target):
-	ply.desperation = ply.desperation + 1
+	ply.desperation = ply.desperation + 5
 	
-addCard( NAME, COST, RARITY, DESC, TARGETS, playFunc )
+addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

@@ -4,16 +4,16 @@ from cardList import addCard
 import tcgpowers, mechanics
 
 #Simple variables
-NAME = "Snipe"
-COST = 2
+NAME = "Solemn Prayer"
+COST = 1
 RARITY = 'C'
-DESC = "Destroys an enemy Node (they still gain life)."
-TARGETS = "ENEMY_NODE"
-TYPE = "NodeInteraction"
+DESC = "Permanently decrease your opponent's Desperation by 10."
+TARGETS = None
+TYPE = "PlyInteraction"
 
 #What happens when you play it
 def playFunc(ply, enemy, target):
-	mechanics.sacNode(enemy,ply,target)
+	enemy.desperation = enemy.desperation - 10
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

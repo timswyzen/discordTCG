@@ -9,10 +9,11 @@ COST = 1
 RARITY = 'C'
 DESC = "Deal 2 damage to your opponent."
 TARGETS = None
+TYPE = "PlyInteraction"
 
 #What happens when you play it
 def playFunc(ply, enemy, target):
 	enemy.lifeforce = enemy.lifeforce - 2
 	
-addCard( NAME, COST, RARITY, DESC, TARGETS, playFunc )
+addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

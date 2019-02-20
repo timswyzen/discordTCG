@@ -2,7 +2,7 @@
 
 import os
 from classes import cardbase, nodebase
-import mechanics
+import mechanics, random, math
 
 #This file retrieves all cards and nodes for the main game to use
 
@@ -19,9 +19,9 @@ def getNodes():
 		exec(open('nodes/'+filename).read())
 	return nodesDB
 
-def addCard(name, cost, rarity, desc, targets, ability):
-	cardsDB[name.lower()] = cardbase.Card(name, cost, rarity, desc, targets, ability)
+def addCard(name, cost, rarity, desc, targets, cardtype, ability):
+	cardsDB[name.lower()] = cardbase.Card(name, cost, rarity, desc, targets, cardtype, ability)
 	
-def addNode(name, desc, ability, energy, deathFunc):
-	nodesDB[name.lower()] = nodebase.GameNode(name, desc, ability, energy, deathFunc)
+def addNode(name, desc, ability, oneTimeAbility, energy, deathFunc):
+	nodesDB[name.lower()] = nodebase.GameNode(name, desc, ability, oneTimeAbility, energy, deathFunc)
 

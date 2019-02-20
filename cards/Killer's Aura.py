@@ -4,16 +4,16 @@ from cardList import addCard
 import tcgpowers, mechanics
 
 #Simple variables
-NAME = "Snipe"
-COST = 2
-RARITY = 'C'
-DESC = "Destroys an enemy Node (they still gain life)."
-TARGETS = "ENEMY_NODE"
-TYPE = "NodeInteraction"
+NAME = "Killer's Aura"
+COST = 4
+RARITY = 'U'
+DESC = "Your opponent burns a card for each Node you control."
+TARGETS = None
+TYPE = "PlyInteraction"
 
 #What happens when you play it
 def playFunc(ply, enemy, target):
-	mechanics.sacNode(enemy,ply,target)
+	enemy.burn( len(ply.nodes) )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

@@ -7,12 +7,13 @@ import tcgpowers
 NAME = "Embrace Temptation"
 COST = 0
 RARITY = 'R'
-DESC = "Gives you a Tempter node."
+DESC = "Spawns a Tempter node."
 TARGETS = None
+TYPE = "NodeGen"
 
 #What happens when you play it
 def playFunc(ply, enemy, target):
-	ply.addNode( 'Tempter', -3 )
+	ply.addNode( 'Tempter' )
 	
-addCard( NAME, COST, RARITY, DESC, TARGETS, playFunc )
+addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

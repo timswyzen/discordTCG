@@ -6,14 +6,15 @@ import mechanics
 
 #Simple variables
 NAME = "Voracity"
-COST = 1
-RARITY = 'U'
-DESC = "Permanently increase your hunger by 1."
+COST = 2
+RARITY = 'C'
+DESC = "Permanently increase your Hunger by 5."
 TARGETS = None
+TYPE = "Buff"
 
 #What happens when you play it
 def playFunc(ply, enemy, target):
-	ply.hunger = ply.hunger + 1
+	ply.hunger = ply.hunger + 5
 	
-addCard( NAME, COST, RARITY, DESC, TARGETS, playFunc )
+addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

@@ -7,16 +7,16 @@ from discord.utils import get
 import asyncio
 import os, sys, random
 from classes import cardbase, gamebase, playerbase
-import tcgpowers, mechanics
+import tcgpowers, mechanics, config
 import json
 
 #For cogs when needed
 mechanics.initData()
-startup_extensions = ['cogs.infocommands']
+startup_extensions = ['cogs.infocommands','cogs.deckbuilding']
 matches = {}
 
 #Bot setup
-TOKEN = 'NTQ1NzAxMDgwMDQ3MDI2MTc2.D0dfTQ.V_xdcXWNcoIhZ_XdP6G1EtlWNJs'
+TOKEN = config.TOKEN
 bot = commands.Bot( command_prefix = '=' )
 
 #Load extensions
@@ -74,20 +74,46 @@ def startRound( match, activePlayer, activePlayerObj, otherPlayer, otherPlayerOb
 	
 	#Energy costs (oooh actual phase orders are showing c:)
 	activePlayerObj.lifeforce = activePlayerObj.lifeforce + activePlayerObj.energy
+	if 'Prayer' in activePlayerObj.nodes: #TODO: replace with hook
+		activeplayerObj.lifeforce = activePlayerObj.lifeforce + len(activePlayerObj.nodes)
 	
 	#Activate all of active player's nodes/initialize turn-based vars
 	for thisNode in activePlayerObj.nodes:
 		mechanics.activateNode( thisNode, activePlayerObj, otherPlayerObj, matches )
-		yield from bot.send_message( ctx.message.channel, activePlayerObj.name + " activated Node: " + thisNode )
+		yield from bot.send_message( ctx.message.channel, activePlayerObj.name + " activated Node: " + str(mechanics.nodeList[thisNode.lower()]) )
 	activePlayerObj.newTurn()
 	otherPlayerObj.newTurn()
 	activePlayerObj.active = True
+	
+	#check if dead
+	if otherPlayerObj.lifeforce <= 0:
+		mechanics.gameOver( activePlayerObj, otherPlayerObj, matches )
+	elif activePlayerObj.lifeforce <= 0:
+		mechanics.gameOver( otherPlayerObj, activePlayerObj, matches )
 		
 	#Send the info
 	yield from bot.send_message( ctx.message.channel, activePlayer.name + "'s turn." )
 	yield from bot.send_message( ctx.message.channel, str(activePlayerObj)+"\n\n"+str(otherPlayerObj) )
-	yield from bot.send_message( activePlayer, "Hand: " + str(activePlayerObj.hand) )
-	yield from bot.send_message( otherPlayer, "Hand: " + str(otherPlayerObj.hand) )
+	
+	#delete last hand sent
+	try:
+		logs = yield from bot.logs_from(activePlayer)
+		print(str(logs))
+		yield from bot.delete_message( logs[0] )
+		logs = yield from bot.logs_from(otherPlayer)
+		yield from bot.delete_message( logs[0] )
+	except:
+		logs = None
+	
+	#send hands
+	stringSend = ""
+	for cards in activePlayerObj.hand:
+		stringSend += str( mechanics.cardList[cards.lower()] ) + "\n"
+	yield from bot.send_message( activePlayer, "[-----Hand-----]\n" + stringSend + "\n\n" )
+	stringSend = ""
+	for cards in otherPlayerObj.hand:
+		stringSend += str( mechanics.cardList[cards.lower()] ) + "\n"
+	yield from bot.send_message( otherPlayer, "[-----Hand-----]\n" + stringSend + "\n\n" )
 	
 	#Make sure it's a game command
 	def check(msg):
@@ -96,7 +122,7 @@ def startRound( match, activePlayer, activePlayerObj, otherPlayer, otherPlayerOb
 	#Wait for active player's command.
 	while True:
 		yield from bot.send_message( ctx.message.channel, "Commands: play, concede, pass, info, mill" )
-		message = yield from bot.wait_for_message( author=activePlayer, check=check, timeout=500 )
+		message = yield from bot.wait_for_message( author=activePlayer, check=check, timeout=config.TURN_TIMEOUT )
 		
 		#Act within 500 seconds or game is lost
 		try:
@@ -119,10 +145,19 @@ def startRound( match, activePlayer, activePlayerObj, otherPlayer, otherPlayerOb
 				
 			#Get proper targets
 			playedObject = mechanics.cardList[message[1].lower()]
+			
+			#Check if node generator (for 1 per turn limit)
+			if playedObject.cardtype == "NodeGen":
+				if activePlayerObj.playedNode:
+					yield from bot.send_message( ctx.message.channel, "You already spawned a Node this turn." )
+					continue
+				else:
+					activePlayerObj.playedNode = True
+			
 			targetEmojis = ['0⃣','1⃣','2⃣','3⃣','4⃣','5⃣','6⃣','7⃣','8⃣','9⃣', '🔟']
 			if playedObject.targets == None:
 				yield from playCard( match, activePlayer, activePlayerObj, otherPlayer, otherPlayerObj, message[1], None, ctx )
-			elif playedObject.targets == "ENEMY_NODE":
+			elif playedObject.targets == "ENEMY_NODE": #TODO: Move to separate function
 				#React to self up to amount of enemy nodes (if none, then continue big loop)
 				if len(otherPlayerObj.nodes) == 0:
 					yield from bot.send_message( ctx.message.channel, "No nodes to target." )
@@ -130,6 +165,20 @@ def startRound( match, activePlayer, activePlayerObj, otherPlayer, otherPlayerOb
 					
 				msg = yield from bot.send_message( ctx.message.channel, "Use reactions to indicate which of your opponent's Nodes to target." )
 				for i in range( len(otherPlayerObj.nodes) ):
+					yield from bot.add_reaction( msg, targetEmojis[i+1] )
+					
+				#Wait for reaction from that list
+				res = yield from bot.wait_for_reaction( emoji=targetEmojis, message=msg, user=activePlayer )
+				thisTarget = targetEmojis.index(str(res.reaction.emoji))-1
+				yield from playCard( match, activePlayer, activePlayerObj, otherPlayer, otherPlayerObj, message[1], thisTarget, ctx )
+			elif playedObject.targets == "FRIENDLY_NODE":
+				#React to self up to amount of friendly nodes (if none, then continue big loop)
+				if len(activePlayerObj.nodes) == 0:
+					yield from bot.send_message( ctx.message.channel, "No nodes to target." )
+					continue
+					
+				msg = yield from bot.send_message( ctx.message.channel, "Use reactions to indicate which of your Nodes to target." )
+				for i in range( len(activePlayerObj.nodes) ):
 					yield from bot.add_reaction( msg, targetEmojis[i+1] )
 					
 				#Wait for reaction from that list
@@ -146,10 +195,13 @@ def startRound( match, activePlayer, activePlayerObj, otherPlayer, otherPlayerOb
 			if activePlayerObj.milled == True:
 				yield from bot.send_message( ctx.message.channel, "You already milled a card this turn." )
 				continue
+			elif len(activePlayerObj.deck) <= 0:
+				yield from bot.send_message( ctx.message.channel, "You have no cards to mill." )
+				continue
 			else:
 				activePlayerObj.milled = True
-				mechanics.millCard( activePlayerObj )
-				yield from bot.send_message( ctx.message.channel, ply.name + " milled " + poppedCard + " for " + str(lifeToGain) + " health." )
+				poppedCard, lifeToGain = mechanics.millCard( activePlayerObj )
+				yield from bot.send_message( ctx.message.channel, activePlayerObj.name + " milled " + poppedCard + " for " + str(lifeToGain) + " health." )
 				continue
 		elif message[0] == 'concede':
 			yield from bot.send_message( ctx.message.channel, activePlayer.name + " conceded." )
@@ -177,7 +229,7 @@ def challenge( ctx, target: discord.Member = None ):
 	
 	#Have challenged guy accept
 	yield from bot.say( target.name + ", you've been challenged to a discordTCG match! Type 'accept' to accept." )
-	message = yield from bot.wait_for_message( author=target, content='accept', timeout=20 )
+	message = yield from bot.wait_for_message( author=target, content='accept', timeout=config.CHALLENGE_TIMEOUT )
 	if message is None:
 		yield from bot.say( challenger + ", your challenge was not accepted :(" )
 		return
@@ -190,13 +242,22 @@ def challenge( ctx, target: discord.Member = None ):
 	if defenderDeck is None or challengerDeck is None:
 		yield from bot.say( "Both players aren't registered! Use =register." )
 		return
+	if len(challengerDeck) < config.DECK_SIZE_MINIMUM or len(defenderDeck) < config.DECK_SIZE_MINIMUM:
+		yield from bot.say( "A player doesn't have at least "+str(config.DECK_SIZE_MINIMUM)+" cards in his or her deck." )
+		return
 	
 	#Initialize game
 	matches[challenger] = gamebase.TCGame( challenger, target.name )
-	matches[challenger].chalObj = playerbase.Player( challenger, challengerDeck, ['Get Puncher','Snipe'] )
-	matches[challenger].defObj = playerbase.Player( target.name, defenderDeck, ['Get Puncher','Embrace Temptation'] )
+	matches[challenger].chalObj = playerbase.Player( challenger, challengerDeck, [] )
+	matches[challenger].defObj = playerbase.Player( target.name, defenderDeck, [] )
 	matches[challenger].chalObj.shuffle()
 	matches[challenger].defObj.shuffle()
+	for i in range(config.STARTING_HAND_SIZE):
+		matches[challenger].chalObj.drawCard()
+		matches[challenger].defObj.drawCard()
+	matches[challenger].chalObj.opponent = matches[challenger].defObj
+	matches[challenger].defObj.opponent = matches[challenger].chalObj
+	
 	
 	#Start round 
 	if random.randint(0,1) == 0:

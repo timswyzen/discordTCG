@@ -18,14 +18,21 @@ def getPlyData( ply ): #takes a discord user object, not game object
 			return json.loads(json_file.read())
 	except:
 		return None
+		
+#Handles a Node entering the field 
+def nodeETB( ply, nodeName ):
+	nodeObj = nodeList[ nodeName.lower() ]
+	nodeObj.spawnFunc(ply,ply.opponent)
+	ply.energy = ply.energy + nodeObj.energy
 	
 #Player sacrificed a node as part of an ability (for health)	
 def sacNode( ply, enemy, index ): #Returns the node OBJECT, not the name.
 	removedNode = nodeList[ply.nodes[index].lower()]
 	removedNode.deathFunc( ply, enemy ) #gets rid of temp effects n stuff
 	ply.nodes.remove( ply.nodes[index] )
-	healthToGain = abs(math.ceil( ply.hunger * removedNode.energy ))
-	ply.lifeforce = ply.lifeforce + healthToGain
+	healthToGain = abs(round( 0.1 * ply.hunger * removedNode.energy ))
+	if 'Feast' not in ply.nodes and 'Feast' not in enemy.nodes: #card...specific......
+		ply.lifeforce = ply.lifeforce + healthToGain
 	ply.energy = ply.energy - removedNode.energy
 	return removedNode
 	
@@ -33,8 +40,9 @@ def sacNode( ply, enemy, index ): #Returns the node OBJECT, not the name.
 def millCard( ply ):
 	poppedCard = ply.deck.pop()
 	cost = cardList[poppedCard.lower()].cost
-	lifeToGain = abs(math.ceil( ply.desperation * cost ))
+	lifeToGain = abs(round( 0.1 * ply.desperation * cost ))
 	ply.lifeforce = ply.lifeforce + lifeToGain
+	return poppedCard, lifeToGain
 	
 #Player activated a node
 def activateNode( nodeName, activePlayerObj, opponentObj, matches ):

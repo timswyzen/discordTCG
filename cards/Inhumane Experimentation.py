@@ -4,16 +4,17 @@ from cardList import addCard
 import tcgpowers, mechanics
 
 #Simple variables
-NAME = "Snipe"
+NAME = "Inhumane Experimentation"
 COST = 2
 RARITY = 'C'
-DESC = "Destroys an enemy Node (they still gain life)."
-TARGETS = "ENEMY_NODE"
+DESC = "Choose one of your Nodes and activate its death ability without destroying it."
+TARGETS = "FRIENDLY_NODE"
 TYPE = "NodeInteraction"
 
 #What happens when you play it
 def playFunc(ply, enemy, target):
-	mechanics.sacNode(enemy,ply,target)
+	nodeObj = ply.nodes[target]
+	nodeObj.deathFunc( ply, enemy )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

@@ -4,16 +4,18 @@ from cardList import addCard
 import tcgpowers, mechanics
 
 #Simple variables
-NAME = "Snipe"
-COST = 2
-RARITY = 'C'
-DESC = "Destroys an enemy Node (they still gain life)."
-TARGETS = "ENEMY_NODE"
-TYPE = "NodeInteraction"
+NAME = "Caltrops"
+COST = 6
+RARITY = 'R'
+DESC = "Spawn 3 Trap Nodes."
+TARGETS = None
+TYPE = "NodeGen"
 
 #What happens when you play it
 def playFunc(ply, enemy, target):
-	mechanics.sacNode(enemy,ply,target)
+	ply.addNode( 'Trap' )
+	ply.addNode( 'Trap' )
+	ply.addNode( 'Trap' )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

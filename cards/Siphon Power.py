@@ -2,18 +2,20 @@
 
 from cardList import addCard
 import tcgpowers, mechanics
+import math
 
 #Simple variables
-NAME = "Snipe"
-COST = 2
+NAME = "Siphon Power"
+COST = 4
 RARITY = 'C'
-DESC = "Destroys an enemy Node (they still gain life)."
-TARGETS = "ENEMY_NODE"
-TYPE = "NodeInteraction"
+DESC = "Draw a card for every 2 Nodes you control."
+TARGETS = None
+TYPE = "PlyInteraction"
 
 #What happens when you play it
 def playFunc(ply, enemy, target):
-	mechanics.sacNode(enemy,ply,target)
+	for _ in range( math.floor(len(ply.nodes)/2) ):
+		ply.drawCard()
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 
