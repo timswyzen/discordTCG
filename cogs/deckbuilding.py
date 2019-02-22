@@ -9,14 +9,91 @@ class Deckbuilding():
 	def __init__(self, bot):
 		self.bot = bot
 		
+	#Select a decklist
+	@commands.command(pass_context=True)
+	@asyncio.coroutine
+	def select( self, ctx, *args ):
+		"""Selects a deck. =select <deck #/name>"""
+		given = ' '.join(args)
+		try: #if user gives index of deck
+			index = int(given)
+			#directly change it
+			with open('player_data/'+str(ctx.message.author.id)+'.txt', 'r') as json_file: 
+				fileContents = json.loads(json_file.read())
+			fileContents['selectedDeck'] = index-1
+			with open('player_data/'+str(ctx.message.author.id)+'.txt', 'w') as outfile:
+				json.dump(fileContents, outfile)
+			yield from self.bot.say( "Selected deck #" + str(index) + "." )
+				
+		except: #if user gives the name of the deck
+			deckname = ' '.join( args )
+			#find corresponding index and change it
+			with open('player_data/'+str(ctx.message.author.id)+'.txt', 'r') as json_file: 
+				fileContents = json.loads(json_file.read())
+				
+			index = None
+			for decks in fileContents['decknames']:
+				if deckname.lower() == decks.lower():
+					index = fileContents['decknames'].index( decks )
+					break
+			if index == None:
+				yield from self.bot.say( "Could not find a deck by that name." )
+				return
+			else:
+				print(str(index))
+				fileContents['selectedDeck'] = index
+				with open('player_data/'+str(ctx.message.author.id)+'.txt', 'w') as outfile:
+					json.dump(fileContents, outfile)
+				yield from self.bot.say( "Selected " + deckname + "." )
+				
+	#See your decklists
+	@commands.command(pass_context=True)
+	@asyncio.coroutine
+	def decks( self, ctx, *args ):
+		"""Lists all your decks."""
+		with open('player_data/'+str(ctx.message.author.id)+'.txt', 'r') as json_file: 
+			fileContents = json.loads(json_file.read())
+		stringToPrint = ""
+		for i in range(5):
+			if fileContents['decknames'][i] == "":
+				stringToPrint += str(i+1) + ": (no name) [" + str(len(fileContents['decks'][i])) + " cards]"
+			else:
+				stringToPrint += str(i+1) + ": " + fileContents['decknames'][i] + " [" + str(len(fileContents['decks'][i])) + " cards]"
+			if i == fileContents['selectedDeck']:
+				stringToPrint += " SELECTED"
+			stringToPrint += "\n"
+		yield from self.bot.say( stringToPrint )
+		
+	#Rename a deck
+	@commands.command(pass_context=True)
+	@asyncio.coroutine
+	def rename( self, ctx, *args ):
+		"""Renames a deck. =rename <deck #> <new name>"""
+		try:
+			index = int(args[0])
+		except:
+			yield from self.bot.say( "Invalid syntax. =rename <deck #> <new name>" )
+			return
+		
+		with open('player_data/'+str(ctx.message.author.id)+'.txt', 'r') as json_file: 
+			fileContents = json.loads(json_file.read())
+		fileContents['decknames'][index-1] = ' '.join(args[1:])
+		with open('player_data/'+str(ctx.message.author.id)+'.txt', 'w') as outfile:
+			json.dump(fileContents, outfile)
+			
+		yield from self.bot.say( "Renamed deck " + str(index) + "." )
+		
+		
 	#Get your decklist
 	@commands.command(pass_context=True)
 	@asyncio.coroutine
-	def getlist( self, ctx, *args ):
+	def deck( self, ctx, *args ):
 		"""Gets your decklist. Use this to save and modify lists. Try doing this in DMs."""
 		stringToPrint = ""
 		i=0
-		selectedDeck = getPlyData(ctx.message.author)['selectedDeck']
+		playerData = getPlyData(ctx.message.author)
+		idx = playerData['selectedDeck']
+		selectedDeck = playerData['decks'][idx]
 		for key,val in Counter(selectedDeck).items():
 			stringToPrint = stringToPrint + ( str(val) + "x " + key + "\n" )
 			i+=1
@@ -35,14 +112,18 @@ class Deckbuilding():
 		"""Gets your collection. Try doing this in DMs."""
 		stringToPrint = ""
 		i=0
-		for key,val in getPlyData( ctx.message.author )['collection'].items():
-			stringToPrint = stringToPrint + ( str(val) + "x " + str(cardList[key.lower()]) + "\n" )
-			i+=1
-			if i>=10:
-				i=0
-				yield from self.bot.say( stringToPrint )
-				stringToPrint = ""
-		yield from self.bot.say( stringToPrint )
+		try:
+			for key,val in getPlyData( ctx.message.author )['collection'].items():
+				stringToPrint = stringToPrint + ( str(val) + "x " + str(cardList[key.lower()]) + "\n" )
+				i+=1
+				if i>=10:
+					i=0
+					yield from self.bot.say( stringToPrint )
+					stringToPrint = ""
+			yield from self.bot.say( stringToPrint )
+		except:
+			yield from self.bot.say( "You aren't registered yet! Use =register." )
+			return
 		
 	#Clears your deck
 	@commands.command(pass_context=True)
@@ -50,7 +131,9 @@ class Deckbuilding():
 	def clear( self, ctx, *args ):
 		"""Removes all cards from your current deck."""
 		try:
-			deckList = getPlyData( ctx.message.author )['selectedDeck']
+			playerData = getPlyData(ctx.message.author)
+			idx = playerData['selectedDeck']
+			selectedDeck = playerData['decks'][idx]
 		except:
 			yield from self.bot.say( "You aren't registered yet. Type =register" )
 			return
@@ -58,7 +141,7 @@ class Deckbuilding():
 		deckList = []
 		with open('player_data/'+str(ctx.message.author.id)+'.txt', 'r') as json_file: 
 			fileContents = json.loads(json_file.read())
-		fileContents['selectedDeck'] = deckList
+		fileContents['decks'][idx] = deckList
 		with open('player_data/'+str(ctx.message.author.id)+'.txt', 'w') as outfile:
 			json.dump(fileContents, outfile)
 			
@@ -79,8 +162,10 @@ class Deckbuilding():
 			
 		#Make sure they're registered
 		try:
-			deck = Counter(getPlyData( ctx.message.author )['selectedDeck'])
-			deckList = getPlyData( ctx.message.author )['selectedDeck']
+			playerData = getPlyData(ctx.message.author)
+			idx = playerData['selectedDeck']
+			deckList = playerData['decks'][idx]
+			deck = Counter(deckList)
 		except:
 			yield from self.bot.say( "You aren't registered yet. Type =register" )
 			return
@@ -105,7 +190,7 @@ class Deckbuilding():
 		#Save
 		with open('player_data/'+str(ctx.message.author.id)+'.txt', 'r') as json_file: 
 			fileContents = json.loads(json_file.read())
-		fileContents['selectedDeck'] = deckList
+		fileContents['decks'][idx] = deckList
 		with open('player_data/'+str(ctx.message.author.id)+'.txt', 'w') as outfile:
 			json.dump(fileContents, outfile)
 			
@@ -128,7 +213,9 @@ class Deckbuilding():
 		#has data check + data retrieval
 		try:
 			collection = getPlyData( ctx.message.author )['collection']
-			deckList = getPlyData( ctx.message.author )['selectedDeck']
+			playerData = getPlyData(ctx.message.author)
+			idx = playerData['selectedDeck']
+			deckList = playerData['decks'][idx]
 		except:
 			yield from self.bot.say( "You aren't registered yet. Type =register" )
 			return
@@ -151,8 +238,8 @@ class Deckbuilding():
 			if cardPair[1] < int(cardEntry[0]):
 				yield from self.bot.say( "You don't have that many "+cardEntry[1]+" in your collection." )
 				return
-			if Counter(deckList)[cardPair[0]] + int(cardEntry[0]) > 4:
-				yield from self.bot.say( "You can only have 4 of a card in your deck. ("+cardPair[0]+")" )
+			if Counter(deckList)[cardPair[0]] + int(cardEntry[0]) > 3:
+				yield from self.bot.say( "You can only have 3 of a card in your deck. ("+cardPair[0]+")" )
 				return
 				
 			#actually add it
@@ -162,7 +249,7 @@ class Deckbuilding():
 		#save
 		with open('player_data/'+str(ctx.message.author.id)+'.txt', 'r') as json_file: 
 			fileContents = json.loads(json_file.read())
-		fileContents['selectedDeck'] = deckList
+		fileContents['decks'][idx] = deckList
 		with open('player_data/'+str(ctx.message.author.id)+'.txt', 'w') as outfile:
 			json.dump(fileContents, outfile)
 			
@@ -185,7 +272,9 @@ class Deckbuilding():
 		#Make sure they're registered
 		try:
 			collection = getPlyData( ctx.message.author )['collection']
-			deckList = getPlyData( ctx.message.author )['selectedDeck']
+			playerData = getPlyData(ctx.message.author)
+			idx = playerData['selectedDeck']
+			deckList = playerData['decks'][idx]
 		except:
 			yield from self.bot.say( "You aren't registered yet. Type =register" )
 			return
@@ -202,25 +291,23 @@ class Deckbuilding():
 		if cardPair[1] < amt:
 			yield from self.bot.say( "You don't have that many of that card in your collection." )
 			return
-		if Counter(deckList)[cardPair[0]] + amt > 4:
-			yield from self.bot.say( "You can only have 4 of a card in your deck." )
+		if Counter(deckList)[cardPair[0]] + amt > 3:
+			yield from self.bot.say( "You can only have 3 of a card in your deck." )
 			return
 			
 		#Add the card
 		for _ in range( amt ):
-			#TODO: Check for card limits
 			deckList.append( cardPair[0] )
 			
 		#Save
 		with open('player_data/'+str(ctx.message.author.id)+'.txt', 'r') as json_file: 
 			fileContents = json.loads(json_file.read())
-		fileContents['selectedDeck'] = deckList
+		fileContents['decks'][idx] = deckList
 		with open('player_data/'+str(ctx.message.author.id)+'.txt', 'w') as outfile:
 			json.dump(fileContents, outfile)
 			
 		yield from self.bot.say( "Successfully added card(s) to your current deck." )
 	
-	#Set your entire deck list (TODO)
 	
 	
 	

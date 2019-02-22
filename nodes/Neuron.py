@@ -6,7 +6,7 @@ import tcgpowers
 #Simple variables
 NAME = "Neuron"
 DESC = "At the start of your turn, draw a card."
-ENERGY = -4
+ENERGY = -3
 
 #What happens when you play it (at the start of your turn)
 def playFunc(ply,enemy):

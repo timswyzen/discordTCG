@@ -1,7 +1,7 @@
 #!/user/bin/env python
 
 from cardList import getCards, getNodes
-import json, asyncio, math
+import json, asyncio, math, time, random
 
 """Extra functions that work better in their own file"""
 
@@ -18,6 +18,20 @@ def getPlyData( ply ): #takes a discord user object, not game object
 			return json.loads(json_file.read())
 	except:
 		return None
+	
+#Give $100 every Sunday at noon (TODO: Make sure this works!)
+def theHandout():
+	for files in os.listdir('player_data'):
+		with open('player_data/'+str(files)+'.txt', 'r') as json_file: 
+			fileContents = json.loads(json_file.read())
+		fileContents['money'] += 100
+		with open('player_data/'+str(files)+'.txt', 'w') as outfile:
+			json.dump(fileContents, outfile)
+
+#Handling bot messages outside the bot files
+@asyncio.coroutine
+def mechMessage( bot, ctx, msg ):
+	yield from bot.send_message( ctx, msg )
 		
 #Handles a Node entering the field 
 def nodeETB( ply, nodeName ):
@@ -55,11 +69,22 @@ def activateNode( nodeName, activePlayerObj, opponentObj, matches ):
 		gameOver( opponentObj, activePlayerObj, matches )
 	
 #Game ended
-def gameOver( winner, loser, matches ):
+def gameOver( winner, loser, matches, bot ):
 	if winner.name in matches:
+		match = matches[winner.name]
 		del matches[winner.name]
 	elif loser.name in matches:
+		match = matches[loser.name]
 		del matches[loser.name]
+	grantMoney(winner.id, match.wager)
+	grantMoney(loser.id, -1*match.wager)
+	#random money pickup chance
+	secondsElapsed = time.time()-match.startTime
+	if secondsElapsed > 127:
+		if random.randint(0,4)%2 == 1:
+			givenMoney = random.randint( 1, 12 )
+			grantMoney( winner.id, givenMoney )
+			yield from mechMessage( bot, winner, "You found $" + str(givenMoney) + " lying in your opponent's ashes." )
 		
 #Get player object from just a name (may bug out if the game gets too big because of duplicate names)
 def searchPlayerInMatch( playerName, match ):
@@ -70,3 +95,40 @@ def searchPlayerInMatch( playerName, match ):
 		return match.defObj
 	else:
 		return None
+		
+def grantCard( plyID, card, amount ): 
+	with open('player_data/'+str(plyID)+'.txt', 'r') as json_file: 
+		fileContents = json.loads(json_file.read())
+		
+	for cards in fileContents['collection']:
+		if card.lower() == cards.lower():
+			fileContents['collection'][cards] += int(amount)
+			
+	with open('player_data/'+str(plyID)+'.txt', 'w') as outfile:
+		json.dump(fileContents, outfile)
+		
+def getBal( plyID ):
+	with open('player_data/'+str(plyID)+'.txt', 'r') as json_file:
+		return json.loads(json_file.read())['money']
+
+def grantMoney( plyID, amount ):
+	with open('player_data/'+str(plyID)+'.txt', 'r') as json_file: 
+		fileContents = json.loads(json_file.read())
+		
+	fileContents['money'] += amount
+			
+	with open('player_data/'+str(plyID)+'.txt', 'w') as outfile:
+		json.dump(fileContents, outfile)
+		
+def getPacks( plyID ):
+	with open('player_data/'+str(plyID)+'.txt', 'r') as json_file:
+		return json.loads(json_file.read())['packs']
+		
+def grantPacks( plyID, amount ):
+	with open('player_data/'+str(plyID)+'.txt', 'r') as json_file: 
+		fileContents = json.loads(json_file.read())
+		
+	fileContents['packs'] += amount
+			
+	with open('player_data/'+str(plyID)+'.txt', 'w') as outfile:
+		json.dump(fileContents, outfile)

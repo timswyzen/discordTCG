@@ -14,4 +14,4 @@ class Card:
 		self.cardtype = cardtype
 		
 	def __str__(self):
-		return self.name + " (" + str(self.cost) + "): " + self.desc
+		return self.name + " (" + str(self.cost) + ") *" + self.rarity + "* : " + self.desc

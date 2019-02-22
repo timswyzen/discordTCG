@@ -1,6 +1,6 @@
 #!/user/bin/env python
 import random
-from mechanics import nodeETB
+from mechanics import nodeETB, sacNode
 
 class Player:
 
@@ -8,17 +8,19 @@ class Player:
 		self.name = name
 		self.deck = deck #last element of deck is the top of the deck (next to draw)
 		self.hand = hand
+		self.energy = 2
 		self.lifeforce = 35
 		self.active = False
 		self.nodes = []
 		self.maxNodes = 6
-		self.energy = 1
 		self.eotEffects = []
 		self.milled = False #if they already used 'mill' this turn
 		self.playedNode = False #if they already played a node this turn
 		self.hunger = 10 #Rate of lifegain from sacrificing nodes (/10)
 		self.desperation = 10 #Rate of lifegain from milling (/10)
 		self.opponent = None #just so we have this stored without needing dumb imports
+		self.lastHandDM = None #for better hand DMing
+		self.cardsThisTurn = 0 #spells played this turn
 		"""Card-specific variables (TODO: Find a better alternative)"""
 		self.mindSwap = False
 		
@@ -35,6 +37,7 @@ class Player:
 			self.hunger = 0
 		if self.desperation < 0:
 			self.desperation = 0
+		self.cardsThisTurn = 0
 		"""Card specific steps (TODO: Find a better alternative)"""
 		if self.mindSwap: #Mind Swap
 			self.desperation, self.opponent.desperation = self.opponent.desperation, self.desperation
@@ -50,9 +53,9 @@ class Player:
 		
 	def addNode(self, nodeName): #TODO: possibly move to mechanics.py for consistency with sacNode()
 		if len(self.nodes) >= self.maxNodes:
+			#sacNode( ply, self.opponent, random.randint(0,len(self.nodes)) ) #TODO: notify users what died and enable this feature
 			return False
-		else:
-			self.nodes.append(nodeName)
+		self.nodes.append(nodeName)
 		nodeETB( self, nodeName )
 		
 	def burn(self, amt): #Milling without lifeforce gain

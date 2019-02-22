@@ -18,9 +18,10 @@ def oneTimeFunc(ply,enemy):
 	
 #What happens when it's sacrificed/killed
 def deathFunc(ply,enemy):
-	target = random.randint(0,len(enemy.nodes))
-	mechanics.sacNode(enemy, ply, target)
-	return
+	if len(enemy.nodes) > 0:
+		target = random.randint(0,len(enemy.nodes)-1)
+		mechanics.sacNode(enemy, ply, target)
+		return
 	
 addNode( NAME, DESC, playFunc, oneTimeFunc, ENERGY, deathFunc )
 

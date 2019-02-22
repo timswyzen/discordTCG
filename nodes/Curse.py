@@ -4,14 +4,13 @@ from cardList import addNode
 import tcgpowers
 
 #Simple variables
-NAME = "Lesser Leech"
-DESC = "At the end of your turn, deal 2 damage to your opponent. Gain lifeforce equal to the damage dealt."
-ENERGY = -1
+NAME = "Curse"
+DESC = "At the start of your turn, burn 4 cards."
+ENERGY = 0
 
-#What happens when you play it
+#What happens when you play it (at the start of your turn)
 def playFunc(ply,enemy):
-	enemy.lifeforce -= 2
-	ply.lifeforce += 2
+	ply.burn(4)
 	return
 	
 #Abilities that only happens when the Node is spawned

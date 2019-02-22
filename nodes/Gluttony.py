@@ -10,7 +10,7 @@ ENERGY = -4
 
 #What happens when you play it (at the start of your turn)
 def playFunc(ply,enemy):
-	enemy.hunger = enemy.hunger - 10
+	enemy.hunger -= 10
 	return
 	
 #Abilities that only happens when the Node is spawned

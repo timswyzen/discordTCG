@@ -1,16 +1,19 @@
 #!/user/bin/env python
 
 from cardList import addNode
-import tcgpowers
+import tcgpowers, mechanics
 
 #Simple variables
-NAME = "Hope"
-DESC = "At the start of your turn, decrease your opponent's Desperation by 5."
-ENERGY = -4
+NAME = "Adrenaline"
+DESC = "At the start of your turn, if you have less than 15 lifeforce, sacrifice this Node and gain 5 lifeforce and 5 Desperation."
+ENERGY = -1
 
 #What happens when you play it (at the start of your turn)
 def playFunc(ply,enemy):
-	enemy.desperation -= 5
+	if ply.lifeforce < 15:
+		ply.lifeforce += 5
+		ply.desperation += 5
+		mechanics.sacNode( ply, enemy, ply.nodes.index('Adrenaline') )
 	return
 	
 #Abilities that only happens when the Node is spawned

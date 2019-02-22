@@ -4,14 +4,14 @@ from cardList import addNode
 import tcgpowers
 
 #Simple variables
-NAME = "Lesser Leech"
-DESC = "At the end of your turn, deal 2 damage to your opponent. Gain lifeforce equal to the damage dealt."
-ENERGY = -1
+NAME = "Maggot Egg"
+DESC = "At the start of your turn, sacrifice this Node and spawn a Parasite Node."
+ENERGY = 0
 
-#What happens when you play it
+#What happens when you play it (at the start of your turn)
 def playFunc(ply,enemy):
-	enemy.lifeforce -= 2
-	ply.lifeforce += 2
+	sacNode( ply, enemy, ply.nodes.index( 'Maggot Egg' ) )
+	ply.addNode( 'Parasite' )
 	return
 	
 #Abilities that only happens when the Node is spawned

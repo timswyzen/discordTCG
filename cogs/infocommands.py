@@ -17,13 +17,27 @@ class InfoCommands():
 	def node( self, ctx, *args ):
 		"""Query the bot for information on a Node."""
 		try:
-			query = ' '.join( args )
+			query = ' '.join( args ).lower()
 			if query.lower() in nodeList:
 				yield from self.bot.say( str( nodeList[query.lower()] ) )
 			else:
 				yield from self.bot.say( "Card not found." )
 		except Exception as e:
 			print(e)
+			
+	@commands.command(pass_context=True)
+	@asyncio.coroutine
+	def library( self, ctx, *args ):
+		"""See how many cards there are in the game."""
+		commons, uncommons, rares = [], [], []
+		for card in cardList:
+			if cardList[card].rarity == 'C':
+				commons.append( cardList[card].name )
+			elif cardList[card].rarity == 'U':
+				uncommons.append( cardList[card].name )
+			elif cardList[card].rarity == 'R':
+				rares.append( cardList[card].name )
+		yield from self.bot.say( str(len(commons)) + " Commons, " + str(len(uncommons)) + " Uncommons, and " + str(len(rares)) + " Rare cards exist.\nThere are " + str(len(commons)+len(uncommons)+len(rares)) + " cards in total, not counting Special cards." )
 	
 	#Get card information 
 	@commands.command(pass_context=True)	
@@ -31,7 +45,7 @@ class InfoCommands():
 	def card( self, ctx, *args ):
 		"""Query the bot for information on a card."""
 		try:
-			query = ' '.join( args )
+			query = ' '.join( args ).lower()
 			if query in cardList:
 				yield from self.bot.say( str( cardList[query.lower()] ) )
 			else:
@@ -94,13 +108,15 @@ class InfoCommands():
 				"Minor Panic": 2,
 				"Embrace Temptation": 1
 			},
-			"selectedDeck": [],
-			"money": 0,
-			"packs": 1
+			"selectedDeck": 0,
+			"money": 50,
+			"packs": 3,
+			"decks": [ [], [], [], [], [] ],
+			"decknames": [ "", "", "", "", "" ] #just cleaner than making "decks" a dic116540929418067968t...
 		}
 		
-		#for testers
-		testers = ['135526460881502209','128216983605870603']
+		#give testers 4 of each card
+		testers = ['135526460881502209','128216983605870603','116540929418067968','106879371616251904','503624106156228619']
 		if ctx.message.author.id in testers:
 			playerData['collection'] = {}
 			for files in os.listdir('./cards'):

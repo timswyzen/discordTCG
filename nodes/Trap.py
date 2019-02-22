@@ -17,7 +17,7 @@ def oneTimeFunc(ply,enemy):
 	
 #What happens when it's sacrificed/killed
 def deathFunc(ply,enemy):
-	enemy.lifeforce = enemy.lifeforce - 3
+	enemy.lifeforce -= 3
 	
 addNode( NAME, DESC, playFunc, oneTimeFunc, ENERGY, deathFunc )
 

@@ -12,7 +12,7 @@ import json
 
 #For cogs when needed
 mechanics.initData()
-startup_extensions = ['cogs.infocommands','cogs.deckbuilding']
+startup_extensions = ['cogs.infocommands','cogs.deckbuilding','cogs.collecting']
 matches = {}
 
 #Bot setup
@@ -29,6 +29,19 @@ def on_ready():
 			print( "Successfully loaded " + str(extension) + "!" )
 		except Exception as e:
 			print( "Extension load failed: " + str(extension) + ".\nMessage: " + str(e) )
+	
+#Send hand function
+@asyncio.coroutine
+def sendHand( player, playerObj, ctx ):
+	#delete last hand sent
+	if not playerObj.lastHandDM == None:
+		yield from bot.delete_message( playerObj.lastHandDM )
+	
+	#send hand
+	stringSend = ""
+	for cards in playerObj.hand:
+		stringSend += str( mechanics.cardList[cards.lower()] ) + "\n"
+	playerObj.lastHandDM = yield from bot.send_message( player, "[-----Hand-----]\n" + stringSend + "\n\n" )
 	
 #Active player played a card
 @asyncio.coroutine
@@ -49,9 +62,13 @@ def playCard( match, activePlayer, activePlayerObj, opponent, opponentObj, cardN
 	
 	#Check for lethal damage
 	if opponentObj.lifeforce <= 0:
-		mechanics.gameOver( activePlayerObj, opponentObj, matches )
+		yield from mechanics.gameOver( activePlayer, opponent, matches, bot )
+		yield from bot.send_message( ctx.message.channel, activePlayer.name + " just lost to " + opponent.name + " in discordTCG!" )
+		return
 	elif activePlayerObj.lifeforce <= 0:
-		mechanics.gameOver( opponentObj, activePlayerObj, matches )
+		yield from mechanics.gameOver( opponent, activePlayer, matches, bot )
+		yield from bot.send_message( ctx.message.channel, activePlayer.name + " just lost to " + opponent.name + " in discordTCG!" )
+		return
 	
 	#Remove card from hand
 	for card in activePlayerObj.hand:
@@ -59,6 +76,8 @@ def playCard( match, activePlayer, activePlayerObj, opponent, opponentObj, cardN
 			activePlayerObj.hand.remove( card )
 			break
 			
+	activePlayerObj.cardsThisTurn += 1
+	yield from sendHand( activePlayer, activePlayerObj, ctx )
 	yield from bot.send_message( ctx.message.channel, str(activePlayerObj)+"\n\n"+str(opponentObj) )
 		
 #New round in a match started
@@ -68,7 +87,7 @@ def startRound( match, activePlayer, activePlayerObj, otherPlayer, otherPlayerOb
 	#check if milled out when drawing a card (maybe condense this chunk somehow)
 	if not activePlayerObj.drawCard():
 		yield from bot.send_message( ctx.message.channel, activePlayer.name + " milled out!" )
-		mechanics.gameOver( otherPlayer, activePlayer, matches )
+		yield from mechanics.gameOver( otherPlayer, activePlayer, matches, bot )
 		yield from bot.send_message( ctx.message.channel, activePlayer.name + " just lost to " + otherPlayer.name + " in discordTCG!" )
 		return
 	
@@ -87,33 +106,19 @@ def startRound( match, activePlayer, activePlayerObj, otherPlayer, otherPlayerOb
 	
 	#check if dead
 	if otherPlayerObj.lifeforce <= 0:
-		mechanics.gameOver( activePlayerObj, otherPlayerObj, matches )
+		yield from mechanics.gameOver( activePlayer, otherPlayer, matches, bot )
+		yield from bot.send_message( ctx.message.channel, activePlayer.name + " just lost to " + otherPlayer.name + " in discordTCG!" )
+		return
 	elif activePlayerObj.lifeforce <= 0:
-		mechanics.gameOver( otherPlayerObj, activePlayerObj, matches )
+		yield from mechanics.gameOver( otherPlayer, activePlayer, matches, bot )
+		yield from bot.send_message( ctx.message.channel, activePlayer.name + " just lost to " + otherPlayer.name + " in discordTCG!" )
+		return
 		
 	#Send the info
 	yield from bot.send_message( ctx.message.channel, activePlayer.name + "'s turn." )
 	yield from bot.send_message( ctx.message.channel, str(activePlayerObj)+"\n\n"+str(otherPlayerObj) )
 	
-	#delete last hand sent
-	try:
-		logs = yield from bot.logs_from(activePlayer)
-		print(str(logs))
-		yield from bot.delete_message( logs[0] )
-		logs = yield from bot.logs_from(otherPlayer)
-		yield from bot.delete_message( logs[0] )
-	except:
-		logs = None
-	
-	#send hands
-	stringSend = ""
-	for cards in activePlayerObj.hand:
-		stringSend += str( mechanics.cardList[cards.lower()] ) + "\n"
-	yield from bot.send_message( activePlayer, "[-----Hand-----]\n" + stringSend + "\n\n" )
-	stringSend = ""
-	for cards in otherPlayerObj.hand:
-		stringSend += str( mechanics.cardList[cards.lower()] ) + "\n"
-	yield from bot.send_message( otherPlayer, "[-----Hand-----]\n" + stringSend + "\n\n" )
+	yield from sendHand( activePlayer, activePlayerObj, ctx )
 	
 	#Make sure it's a game command
 	def check(msg):
@@ -129,7 +134,7 @@ def startRound( match, activePlayer, activePlayerObj, otherPlayer, otherPlayerOb
 			message = message.content.lower().split(' ',1)
 		except AttributeError:
 			yield from bot.send_message( ctx.message.channel, "Game timed out!" )
-			mechanics.gameOver( otherPlayer, activePlayer, matches )
+			yield from mechanics.gameOver( otherPlayer, activePlayer, matches, bot )
 			yield from bot.send_message( ctx.message.channel, activePlayer.name + " just lost to " + otherPlayer.name + " in discordTCG!" )
 			break
 	
@@ -205,15 +210,15 @@ def startRound( match, activePlayer, activePlayerObj, otherPlayer, otherPlayerOb
 				continue
 		elif message[0] == 'concede':
 			yield from bot.send_message( ctx.message.channel, activePlayer.name + " conceded." )
-			mechanics.gameOver( otherPlayer, activePlayer, matches )
+			yield from mechanics.gameOver( otherPlayer, activePlayer, matches, bot )
 			yield from bot.send_message( ctx.message.channel, activePlayer.name + " just lost to " + otherPlayer.name + " in discordTCG!" )
 			break
 
 #Challenge someone and initialize the fight
 @bot.command(pass_context=True)
 @asyncio.coroutine
-def challenge( ctx, target: discord.Member = None ):
-	"""Challenge a friend to discordTCG!"""
+def challenge( ctx, target: discord.Member = None, *args ):
+	"""Challenge a friend to discordTCG! =challenge <@user> <wager>"""
 	
 	challenger = ctx.message.author.name
 	
@@ -237,17 +242,26 @@ def challenge( ctx, target: discord.Member = None ):
 	#Get player data
 	challengerDeck = mechanics.getPlyData( ctx.message.author )
 	defenderDeck = mechanics.getPlyData( target )
-	challengerDeck = challengerDeck['selectedDeck']
-	defenderDeck = defenderDeck['selectedDeck']
 	if defenderDeck is None or challengerDeck is None:
 		yield from bot.say( "Both players aren't registered! Use =register." )
 		return
+	challengerDeck = challengerDeck['decks'][challengerDeck['selectedDeck']]
+	defenderDeck = defenderDeck['decks'][defenderDeck['selectedDeck']]
 	if len(challengerDeck) < config.DECK_SIZE_MINIMUM or len(defenderDeck) < config.DECK_SIZE_MINIMUM:
 		yield from bot.say( "A player doesn't have at least "+str(config.DECK_SIZE_MINIMUM)+" cards in his or her deck." )
 		return
+		
+	try:
+		wager = int(args[0])
+		if mechanics.getBal( ctx.message.author.id ) < wager or mechanics.getBal( target.id ) < wager:
+			yield from bot.say( "A player doesn't have enough money for this wager!" )
+			return
+		yield from bot.say( "Wager set to $" + args[0] + "!" )
+	except:
+		wager = 0
 	
 	#Initialize game
-	matches[challenger] = gamebase.TCGame( challenger, target.name )
+	matches[challenger] = gamebase.TCGame( challenger, target.name, wager )
 	matches[challenger].chalObj = playerbase.Player( challenger, challengerDeck, [] )
 	matches[challenger].defObj = playerbase.Player( target.name, defenderDeck, [] )
 	matches[challenger].chalObj.shuffle()
@@ -262,9 +276,11 @@ def challenge( ctx, target: discord.Member = None ):
 	#Start round 
 	if random.randint(0,1) == 0:
 		matches[challenger].chalObj.active = True #deprecated? TODO: see if I actually need this
+		matches[challenger].defObj.energy += 1
 		yield from startRound( matches[challenger], ctx.message.author, matches[challenger].chalObj, target, matches[challenger].defObj, ctx )
 	else:
 		matches[challenger].defObj.active = True
+		matches[challenger].chalObj.energy += 1
 		yield from startRound( matches[challenger], target, matches[challenger].defObj, ctx.message.author, matches[challenger].chalObj, ctx )
 
 print("[-=-Loaded Cards-=-]\n")
