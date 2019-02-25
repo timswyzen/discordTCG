@@ -3,18 +3,26 @@ import discord
 from discord.ext import commands
 import asyncio, json, os, random
 from mechanics import cardList, getPlyData, grantCard, grantMoney, grantPacks, getBal, getPacks
+import config
 
 class Collecting():
 	def __init__(self, bot):
 		self.bot = bot
 		
+	#Opening a pack
 	@commands.command(pass_context=True)
 	@asyncio.coroutine
 	def openpack( self, ctx, *args ):
 		"""OPEN A SHINY NEW PACK!"""
-		if getPacks( ctx.message.author.id ) < 1:
-			yield from self.bot.say( "You don't have any packs to open :( Buy some with =buy!" )
+		try:
+			if getPacks( ctx.message.author.id ) < 1:
+				yield from self.bot.say( "You don't have any packs to open :( Use =buy to get more!" )
+				return
+		except:
+			yield from self.bot.say( "You aren't registered yet. Use =register" )
 			return
+			
+		#Grab all the cards
 		commons, uncommons, rares = [], [], []
 		cardsReceived = []
 		for card in cardList:
@@ -27,6 +35,7 @@ class Collecting():
 		
 		stringToSay = ( ":star: :star2: :star2: :star2: :star2: :star2: :star2: :star2: :star2: :star2: :star:\n:star: :confetti_ball:           You got new cards!           :confetti_ball: :star:\n" )
 		
+		#Pick the cards, build the string
 		for i in range( 5 ):
 			#TODO: can't get 5+ of the same card
 			cardsReceived.append( random.choice( commons ) )
@@ -40,39 +49,42 @@ class Collecting():
 		
 		yield from self.bot.say( stringToSay )
 		
+		#Set their data
 		for card in cardsReceived:
 			grantCard( ctx.message.author.id, card, 1 )
-
 		grantPacks( ctx.message.author.id, -1 )
 		
-	@commands.command(pass_context=True)
-	@asyncio.coroutine
-	def packs( self, ctx, *args ):
-		"""Get how many packs you have."""
-		yield from self.bot.say( "You currently have " + str(getPacks(ctx.message.author.id)) + " pack(s)." )
-		
+	#Buy packs
 	@commands.command(pass_context=True)
 	@asyncio.coroutine
 	def buy( self, ctx, amt: int = 1 ):
 		"""Buy some packs! =buy <amount>"""
+		#Just make sure they can
 		if amt < 1:
 			yield from self.bot.say( "Invalid input." )
 			return
-		if getBal( ctx.message.author.id ) < amt * 150:
-			yield from self.bot.say( "Not enough money for " + str(amt) + " packs." )
+		if getBal( ctx.message.author.id ) < amt * config.PACK_PRICE:
+			yield from self.bot.say( "Not enough money for " + str(amt) + " packs. They are currently $" + str(config.PACK_PRICE) + " each." )
 			return
+		#Data stuff, then printing
 		grantPacks( ctx.message.author.id, amt )
+		grantMoney( ctx.message.author.id, amt * config.PACK_PRICE )
 		if amt == 1:
 			yield from self.bot.say( "Bought a pack! Open it with =openpack." )
 		else:
 			yield from self.bot.say( "Bought " + amt + " packs!!!! Open them with =openpack!!!!!!!" )
 		
+	#Checking your packs and $
 	@commands.command(pass_context=True)
 	@asyncio.coroutine
 	def bal( self, ctx, *args ):
-		"""Get your current $ balance."""
-		yield from self.bot.say( "You currently have $" + str(getBal(ctx.message.author.id)) + "." )
+		"""Get your current balance and amount of packs."""
+		try:
+			yield from self.bot.say( "You currently have $" + str(getBal(ctx.message.author.id)) + " and "+str(getPacks(ctx.message.author.id))+" pack(s)." )
+		except:
+			yield from self.bot.say( "You aren't registered. Use =register" )
 		
+	#Trading
 	@commands.command(pass_context=True)
 	@asyncio.coroutine
 	def trade( self, ctx, target: discord.Member = None, *args ):
@@ -100,6 +112,7 @@ class Collecting():
 			yield from self.bot.say( "You aren't registered yet. Type =register" )
 			return
 			
+		#Go through the cards and validate, then add to trade
 		for cardEntry in messageList: #for each [2, "caltrops"], for example
 			cardPair = None
 			#formatting and data getting
@@ -146,6 +159,7 @@ class Collecting():
 			yield from self.bot.say( "Target isn't registered yet." )
 			return
 			
+		#Go through cards and validate, then add to trade
 		for cardEntry in messageList: #for each [2, "caltrops"], for example
 			cardPair = None
 			#formatting and data getting
@@ -183,6 +197,7 @@ class Collecting():
 		if message.content.lower().startswith('no'):
 			yield from self.bot.say( "Trade request denied." )
 			return
+		#Complete the trade
 		elif message.content.lower().startswith('yes'):
 			#give trader the tradee's stuff
 			for item in tradee:

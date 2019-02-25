@@ -22,6 +22,6 @@ def getNodes():
 def addCard(name, cost, rarity, desc, targets, cardtype, ability):
 	cardsDB[name.lower()] = cardbase.Card(name, cost, rarity, desc, targets, cardtype, ability)
 	
-def addNode(name, desc, ability, oneTimeAbility, energy, deathFunc):
-	nodesDB[name.lower()] = nodebase.GameNode(name, desc, ability, oneTimeAbility, energy, deathFunc)
+def addNode(name, desc, ability, oneTimeAbility, energy, deathFunc, triggerType, triggerFunc):
+	nodesDB[name.lower()] = nodebase.GameNode(name, desc, ability, oneTimeAbility, energy, deathFunc, triggerType, triggerFunc)
 

@@ -1,6 +1,6 @@
 #!/user/bin/env python
 import random
-from mechanics import nodeETB, sacNode
+from mechanics import nodeETB, sacNode, gameTrigger
 
 class Player:
 
@@ -9,7 +9,7 @@ class Player:
 		self.deck = deck #last element of deck is the top of the deck (next to draw)
 		self.hand = hand
 		self.energy = 2
-		self.lifeforce = 35
+		self.lifeforce = 50
 		self.active = False
 		self.nodes = []
 		self.maxNodes = 6
@@ -23,14 +23,27 @@ class Player:
 		self.cardsThisTurn = 0 #spells played this turn
 		"""Card-specific variables (TODO: Find a better alternative)"""
 		self.mindSwap = False
+		self.desperationBoost = 0 #reset desperation boost (subtract this at start of turn)
+		self.opponentCantSpawnNodes = False
 		
 	#Custom function in case I end up wanting to do something with shuffling (e.g hooks)
 	def shuffle(self):
 		random.shuffle( self.deck )
 		
+	def addMaxNodes(self, amt):
+		#set
+		self.maxNodes += amt
+		if self.maxNodes > 10:
+			self.maxNodes = 10
+		if self.maxNodes < 0:
+			self.maxNodes = 0
+		#kill excess nodes
+		while len(self.nodes) > self.maxNodes:
+			sacNode( ply, self.opponent, self.nodes[self.maxNodes] )
+		
+		
 	def newTurn(self):
 		self.eotEffects = []
-		self.milled = False
 		self.active = False
 		self.playedNode = False
 		if self.hunger < 0:
@@ -38,11 +51,20 @@ class Player:
 		if self.desperation < 0:
 			self.desperation = 0
 		self.cardsThisTurn = 0
+		
+	def newMyTurn(self):
+		self.milled = False
+		self.active = True
 		"""Card specific steps (TODO: Find a better alternative)"""
 		if self.mindSwap: #Mind Swap
 			self.desperation, self.opponent.desperation = self.opponent.desperation, self.desperation
 			self.hunger, self.opponent.hunger = self.opponent.hunger, self.hunger
 			self.mindSwap = False
+		if not self.desperationBoost == 0:
+			self.desperation -= self.desperationBoost
+			self.desperationBoost = 0
+		self.opponentCantSpawnNodes = False
+		gameTrigger( "NEW_TURN", self, None )
 		
 	def drawCard(self):
 		#mill out
@@ -50,18 +72,28 @@ class Player:
 			return False
 		self.hand.append( self.deck.pop() )
 		return True
+		gameTrigger( "DRAW", self, None )
+		
+	def randomDiscard(self):
+		if len(self.hand) > 0:
+			self.hand.pop( random.randint(0,len(self.hand)-1) )
+		gameTrigger( "DISCARD", self, None )
 		
 	def addNode(self, nodeName): #TODO: possibly move to mechanics.py for consistency with sacNode()
+		if self.opponent.opponentCantSpawnNodes:
+			return
+		gameTrigger( "NODESPAWN", self, nodeName )
 		if len(self.nodes) >= self.maxNodes:
-			#sacNode( ply, self.opponent, random.randint(0,len(self.nodes)) ) #TODO: notify users what died and enable this feature
-			return False
-		self.nodes.append(nodeName)
+			sacNode( self, self.opponent, self.nodes[self.maxNodes-1] )
+		self.nodes.insert(0, nodeName)
 		nodeETB( self, nodeName )
+		
 		
 	def burn(self, amt): #Milling without lifeforce gain
 		for i in range(amt):
 			if len(self.deck) > 0:
 				self.deck.pop()
+		gameTrigger( "BURN", self, amt )
 			
 	def removeNode(self, nodeName, enerCost):
 		for node in self.nodes:

@@ -51,8 +51,12 @@ class Deckbuilding():
 	@asyncio.coroutine
 	def decks( self, ctx, *args ):
 		"""Lists all your decks."""
-		with open('player_data/'+str(ctx.message.author.id)+'.txt', 'r') as json_file: 
-			fileContents = json.loads(json_file.read())
+		try:
+			with open('player_data/'+str(ctx.message.author.id)+'.txt', 'r') as json_file: 
+				fileContents = json.loads(json_file.read())
+		except:
+			yield from self.bot.say( "You aren't registered! Use =register" )
+			return
 		stringToPrint = ""
 		for i in range(5):
 			if fileContents['decknames'][i] == "":
@@ -62,6 +66,7 @@ class Deckbuilding():
 			if i == fileContents['selectedDeck']:
 				stringToPrint += " SELECTED"
 			stringToPrint += "\n"
+		
 		yield from self.bot.say( stringToPrint )
 		
 	#Rename a deck
@@ -91,8 +96,12 @@ class Deckbuilding():
 		"""Gets your decklist. Use this to save and modify lists. Try doing this in DMs."""
 		stringToPrint = ""
 		i=0
-		playerData = getPlyData(ctx.message.author)
-		idx = playerData['selectedDeck']
+		try:
+			playerData = getPlyData(ctx.message.author)
+			idx = playerData['selectedDeck']
+		except:
+			yield from self.bot.say( "You aren't registered! Use =register" )
+			return
 		selectedDeck = playerData['decks'][idx]
 		for key,val in Counter(selectedDeck).items():
 			stringToPrint = stringToPrint + ( str(val) + "x " + key + "\n" )
@@ -118,9 +127,10 @@ class Deckbuilding():
 				i+=1
 				if i>=10:
 					i=0
-					yield from self.bot.say( stringToPrint )
+					yield from self.bot.send_message( ctx.message.author, stringToPrint )
 					stringToPrint = ""
-			yield from self.bot.say( stringToPrint )
+			if not stringToPrint == "":
+				yield from self.bot.send_message( ctx.message.author, stringToPrint )
 		except:
 			yield from self.bot.say( "You aren't registered yet! Use =register." )
 			return
@@ -233,13 +243,13 @@ class Deckbuilding():
 			
 			#checks
 			if cardPair == None:
-				yield from self.bot.say( cardEntry[1] + " isn't in your collection." )
+				yield from self.bot.say( cardEntry[1] + " isn't in your collection. Exiting bulkadd." )
 				return
 			if cardPair[1] < int(cardEntry[0]):
-				yield from self.bot.say( "You don't have that many "+cardEntry[1]+" in your collection." )
+				yield from self.bot.say( "You don't have that many "+cardEntry[1]+" in your collection. Exiting bulkadd." )
 				return
 			if Counter(deckList)[cardPair[0]] + int(cardEntry[0]) > 3:
-				yield from self.bot.say( "You can only have 3 of a card in your deck. ("+cardPair[0]+")" )
+				yield from self.bot.say( "You can only have 3 of a card in your deck. ("+cardPair[0]+") Exiting bulkadd." )
 				return
 				
 			#actually add it
@@ -266,7 +276,7 @@ class Deckbuilding():
 			card = ' '.join(args[1:])
 			amt = int(args[0])
 		except:
-			yield from self.bot.say( "Incorrect syntax. =add <cardname> <amount>" )
+			yield from self.bot.say( "Incorrect syntax. =add <amount> <card name>" )
 			return
 			
 		#Make sure they're registered

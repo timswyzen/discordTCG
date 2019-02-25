@@ -7,9 +7,36 @@ import config
 
 """Extra commands that didn't need to be in the base file"""
 
+defaultDeck1 = ["Minor Recharge", "Minor Recharge", "Killer's Aura", "Killer's Aura", "Snipe", "Snipe", "Hivemind", "Hivemind", "Hivemind", "Swing", "Swing", "Swing", "Minor Panic", "Minor Panic", "Minor Panic", "Swarmspark", "Swarmspark", "Swarmspark", "Inherited Cruelty", "Inherited Cruelty", "Inherited Cruelty", "Recursion", "Recursion", "Recursion", "Gluttonous Temptation", "Neuron Boost", "Neuron Boost", "Siphon Power", "Siphon Power", "Siphon Power", "Stimulation", "Stimulation", "Maul", "Backlash", "Collected Shot", "Double Tap", "Beg for Mercy", "Beg for Mercy", "Creativity", "Creativity"]
+
+defaultDeck2 = ["Maul", "Snipe", "Snipe", "Swing", "Swing", "Swing", "Stimulation", "Stimulation", "Double Tap", "Minor Recharge", "Minor Recharge", "Neuron Boost", "Neuron Boost", "Minor Panic", "Minor Panic", "Minor Panic", "Beg for Mercy", "Beg for Mercy", "Fizzle", "Fizzle", "False Hope", "False Hope", "Shattered Mind", "Last Meal", "Last Meal", "Last Crumb", "Last Crumb", "Recursion", "Recursion", "Voracity", "Voracity", "Mind Swap", "Mind Swap", "Voracity", "Unwilling Sacrifice", "Unwilling Sacrifice", "Bloody Pentagram", "Bloody Pentagram", "Siphon Power", "Siphon Power", "Confusion", "Confusion"]
+
 class InfoCommands():
 	def __init__(self, bot):
 		self.bot = bot
+		
+	#Search via description
+	@commands.command(pass_context=True)
+	@asyncio.coroutine
+	def search( self, ctx, *args ):
+		"""Search for a card via its description."""
+		queryList = args
+		stringToSay = ""
+		i = 0
+		for card in cardList:
+			sayCard = True
+			for query in queryList:
+				if query.lower() not in cardList[card].desc.lower() and query.lower() not in cardList[card].name.lower():
+					sayCard = False
+			if sayCard == True:
+				stringToSay += str(cardList[card]) + '\n'
+				i+=1
+				if i>=10:
+					i=0
+					yield from self.bot.say( stringToSay )
+					stringToSay = ""
+		if not stringToSay == "":
+			yield from self.bot.say( stringToSay )
 		
 	#Get Node information 
 	@commands.command(pass_context=True)	
@@ -21,7 +48,7 @@ class InfoCommands():
 			if query.lower() in nodeList:
 				yield from self.bot.say( str( nodeList[query.lower()] ) )
 			else:
-				yield from self.bot.say( "Card not found." )
+				yield from self.bot.say( "Node not found." )
 		except Exception as e:
 			print(e)
 			
@@ -89,6 +116,13 @@ class InfoCommands():
 	def credits( self, ctx, *args ):
 		"""See who worked in this kick-butt project!"""
 		yield from self.bot.say( "[-------------=Credits=-------------]\n---[--------Version "+config.VERSION+"--------]---\n**Developer/Creator**: Tim Swyzen\n**Game Design**: John Kay, Tim Swyzen" )
+		
+	#Tutorial
+	@commands.command(pass_context=True)
+	@asyncio.coroutine
+	def tutorial( self, ctx, *args ):
+		"""Get a link to the beginner's guide."""
+		yield from self.bot.say( "Beginner's Guide: https://pastebin.com/Y70FZ49Q" )
 			
 	#Get an 'account'
 	@commands.command(pass_context=True)
@@ -101,22 +135,45 @@ class InfoCommands():
 			return
 		playerData = {
 			"collection": {
-				"Swing": 4,
-				"Get Puncher": 3,
+				"Maul": 1,
+				"Killer's Aura": 2,
+				"Snipe": 2,
+				"Gluttonous Temptation": 1,
+				"Hivemind": 3,
+				"Swing": 3,
+				"Minor Panic": 3,
+				"Swarmspark": 3,
+				"Stimulation": 2,
+				"Inherited Cruelty": 3,
 				"Recursion": 2,
-				"Voracity": 2,
-				"Minor Panic": 2,
-				"Embrace Temptation": 1
+				"Double Tap": 1,
+				"Neuron Boost": 2,
+				"Siphon Power": 3,
+				"Backlash": 1,
+				"Creativity": 2,
+				"Minor Recharge": 2,
+				"Beg For Mercy": 2,
+				"Collected Shot": 1,
+				"Confusion": 2,
+				"Mind Swap": 2,
+				"Fizzle": 2,
+				"Voracity": 3,
+				"Unwilling Sacrifice": 2,
+				"False Hope": 2,
+				"Shattered Mind": 1,
+				"Last Meal": 2,
+				"Last Crumb": 2,
+				"Bloody Pentagram": 2
 			},
 			"selectedDeck": 0,
 			"money": 50,
-			"packs": 3,
-			"decks": [ [], [], [], [], [] ],
-			"decknames": [ "", "", "", "", "" ] #just cleaner than making "decks" a dic116540929418067968t...
+			"packs": 4,
+			"decks": [ defaultDeck1, defaultDeck2, [], [], [] ],
+			"decknames": [ "Swarmers", "H/D Combo", "", "", "" ] #just cleaner than making "decks" a dic116540929418067968t...
 		}
 		
 		#give testers 4 of each card
-		testers = ['135526460881502209','128216983605870603','116540929418067968','106879371616251904','503624106156228619']
+		testers = ['135526460881502209','128216983605870603',]
 		if ctx.message.author.id in testers:
 			playerData['collection'] = {}
 			for files in os.listdir('./cards'):

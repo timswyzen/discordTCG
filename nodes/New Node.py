@@ -1,17 +1,16 @@
 #!/user/bin/env python
 
 from cardList import addNode
-import tcgpowers
+import tcgpowers, mechanics
 
 #Simple variables
-NAME = "Lesser Leech"
-DESC = "At the end of your turn, deal 2 damage to your opponent. Gain lifeforce equal to the damage dealt."
+NAME = ""
+DESC = ""
 ENERGY = -1
+TRIGGER = None
 
-#What happens when you play it
+#What happens when you play it (at the start of your turn)
 def playFunc(ply,enemy):
-	enemy.lifeforce -= 2
-	ply.lifeforce += 2
 	return
 	
 #Abilities that only happens when the Node is spawned
@@ -22,5 +21,9 @@ def oneTimeFunc(ply,enemy):
 def deathFunc(ply,enemy):
 	return
 	
-addNode( NAME, DESC, playFunc, oneTimeFunc, ENERGY, deathFunc )
+#What happens when the TRIGGER is triggered
+def triggerFunc(ply,enemy):
+	return
+	
+addNode( NAME, DESC, playFunc, oneTimeFunc, ENERGY, deathFunc, TRIGGER, triggerFunc )
 
