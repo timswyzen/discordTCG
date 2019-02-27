@@ -13,4 +13,4 @@ class GameNode:
 		self.triggerFunc = triggerFunc
 		
 	def __str__(self):
-		return self.name + " ("+str(self.energy)+"): " + self.desc
+		return "**" + self.name + " ("+str(self.energy)+")**: " + self.desc

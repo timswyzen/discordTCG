@@ -15,7 +15,7 @@ class InfoCommands():
 	def __init__(self, bot):
 		self.bot = bot
 		
-	#Search via description
+	#Search card via description
 	@commands.command(pass_context=True)
 	@asyncio.coroutine
 	def search( self, ctx, *args ):
@@ -30,6 +30,29 @@ class InfoCommands():
 					sayCard = False
 			if sayCard == True:
 				stringToSay += str(cardList[card]) + '\n'
+				i+=1
+				if i>=10:
+					i=0
+					yield from self.bot.say( stringToSay )
+					stringToSay = ""
+		if not stringToSay == "":
+			yield from self.bot.say( stringToSay )
+			
+	#Search Node via description
+	@commands.command(pass_context=True)
+	@asyncio.coroutine
+	def nodesearch( self, ctx, *args ):
+		"""Search for a Node via its description."""
+		queryList = args
+		stringToSay = ""
+		i = 0
+		for node in nodeList:
+			sayNode = True
+			for query in queryList:
+				if query.lower() not in nodeList[node].desc.lower() and query.lower() not in nodeList[node].name.lower():
+					sayNode = False
+			if sayNode == True:
+				stringToSay += str(nodeList[node]) + '\n'
 				i+=1
 				if i>=10:
 					i=0
@@ -105,10 +128,13 @@ class InfoCommands():
 		except:
 			yield from self.bot.say( "Incorrect syntax. =showoff <cardname>" )
 		
-		if cardLower in [x.lower() for x in getPlyData( ctx.message.author )['collection'].keys()]:
-			yield from self.bot.say( ctx.message.author.name + " has a shiny " + card + "!" )
-		else:
-			yield from self.bot.say( ctx.message.author.name + " doesn't even have a " + card + ". What a loser!" )
+		try:
+			if cardLower in [x.lower() for x in getPlyData( ctx.message.author )['collection'].keys()]:
+				yield from self.bot.say( ctx.message.author.name + " has a shiny " + card + "!" )
+			else:
+				yield from self.bot.say( ctx.message.author.name + " doesn't even have a " + card + ". What a loser!" )
+		except:
+			yield from self.bot.say( "You need to be registered to show stuff off. =register" )
 			
 	#Credits
 	@commands.command(pass_context=True)
@@ -171,13 +197,7 @@ class InfoCommands():
 			"decks": [ defaultDeck1, defaultDeck2, [], [], [] ],
 			"decknames": [ "Swarmers", "H/D Combo", "", "", "" ] #just cleaner than making "decks" a dic116540929418067968t...
 		}
-		
-		#give testers 4 of each card
-		testers = ['135526460881502209','128216983605870603',]
-		if ctx.message.author.id in testers:
-			playerData['collection'] = {}
-			for files in os.listdir('./cards'):
-				playerData['collection'][files[:-3]] = 4
+	
 		
 		with open('player_data/'+str(playerID)+'.txt', 'w') as outfile:
 			json.dump(playerData, outfile)

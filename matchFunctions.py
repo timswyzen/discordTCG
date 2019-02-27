@@ -7,13 +7,13 @@ from discord.utils import get
 import asyncio
 import os, sys, random
 from classes import cardbase, gamebase, playerbase
-import tcgpowers, mechanics, config
+import mechanics, config
 import json
 
 #For cogs when needed
 mechanics.initData()
 startup_extensions = ['cogs.infocommands','cogs.deckbuilding','cogs.collecting']
-matches = {}
+config.matches = {}
 
 #Bot setup
 TOKEN = config.TOKEN
@@ -23,6 +23,7 @@ bot = commands.Bot( command_prefix = '=' )
 @bot.event
 @asyncio.coroutine
 def on_ready():
+	yield from bot.change_presence(game=discord.Game(name='Version '+config.VERSION)) #TODO: show current # matches once this gets bigger xd
 	for extension in startup_extensions:
 		try:
 			bot.load_extension( extension )
@@ -43,10 +44,39 @@ def sendHand( player, playerObj, ctx ):
 		stringSend += str( mechanics.cardList[cards.lower()] ) + "\n"
 	playerObj.lastHandDM = yield from bot.send_message( player, "[-----Hand-----]\n" + stringSend + "\n\n" )
 	
+#print and reset player logs, then activate all triggered abilities
+def printLogs( match, ctx ):
+	playerOneObj = match.chalObj
+	playerTwoObj = match.defObj
+	#trigger stuff
+	if len(playerOneObj.nodesToTrigger) > 0:
+		for triggered in playerOneObj.nodesToTrigger:
+			yield from mechanics.nodeList[triggered[0]].triggerFunc( playerOneObj, playerTwoObj, triggered[1], triggered[2] ) or []
+		playerOneObj.nodesToTrigger = []
+		
+	strToSend = ""
+	for logs in playerOneObj.log:
+		strToSend += logs + '\n'
+	if len(playerOneObj.log) > 0:
+		yield from bot.send_message( ctx.message.channel, strToSend )
+	playerOneObj.log = []
+	
+	#trigger stuff
+	if len(playerTwoObj.nodesToTrigger) > 0:
+		for triggered in playerTwoObj.nodesToTrigger:
+			yield from mechanics.nodeList[triggered[0]].triggerFunc( playerTwoObj, playerOneObj, triggered[1], triggered[2] ) or []
+		playerTwoObj.nodesToTrigger = []
+	
+	strToSend = ""
+	for logs in playerTwoObj.log:
+		strToSend += logs + '\n'
+	if len(playerTwoObj.log) > 0:
+		yield from bot.send_message( ctx.message.channel, strToSend )
+	playerTwoObj.log = []
+	
 #Active player played a card
 @asyncio.coroutine
 def playCard( match, activePlayer, activePlayerObj, opponent, opponentObj, cardName, targets, ctx ):
-
 	playedObject = mechanics.cardList[cardName.lower()]
 	
 	#Pay health if possible
@@ -54,7 +84,11 @@ def playCard( match, activePlayer, activePlayerObj, opponent, opponentObj, cardN
 		yield from bot.send_message( ctx.message.channel, "You don't have enough lifeforce for that card." )
 		return
 	else:
-		activePlayerObj.lifeforce -= playedObject.cost
+		activePlayerObj.lifeforce -= playedObject.cost #doesn't use damage function cause it shouldn't trigger as damage
+		
+	if activePlayerObj.lifeforce <= 0:
+		yield from gameOver( activePlayer.id )
+		return
 		
 	#Remove card from hand
 	for card in activePlayerObj.hand:
@@ -63,20 +97,20 @@ def playCard( match, activePlayer, activePlayerObj, opponent, opponentObj, cardN
 			break
 		
 	#Play the card (assuming already got proper targets)
-	playedObject.func( activePlayerObj, opponentObj, targets )
+	yield from playedObject.func( activePlayerObj, opponentObj, targets ) or [] #the or [] does something undefined but makes it work.
+	#TODO: figure out why 'or []' works LMAO
 	yield from bot.send_message( ctx.message.channel, activePlayer.name + " played " + str(playedObject) + "\n\n" )
+	mechanics.gameTrigger( "PLAYED_CARD", activePlayerObj, playedObject.name )
 	
-	#Check for lethal damage
-	if opponentObj.lifeforce <= 0:
-		yield from mechanics.gameOver( activePlayer, opponent, matches, bot, ctx )
-		return False
-	elif activePlayerObj.lifeforce <= 0:
-		yield from mechanics.gameOver( opponent, activePlayer, matches, bot, ctx )
-		return False
+	#check if game still exists
+	if not mechanics.isGameRunning( match ):
+		return
 			
 	#Send hand & messages
 	activePlayerObj.cardsThisTurn += 1
 	yield from sendHand( activePlayer, activePlayerObj, ctx )
+	
+	yield from printLogs( match, ctx )
 	if not match.gameMessage == None:
 		yield from bot.delete_message( match.gameMessage )
 	match.gameMessage = yield from bot.send_message( ctx.message.channel, str(activePlayerObj)+"\n\n"+str(opponentObj)+"\nCommands: play, concede, pass, info, mill" )
@@ -91,7 +125,7 @@ def getTarget( playedObject, activePlayerObj, activePlayer, otherPlayerObj, ctx 
 		#React to self up to amount of enemy nodes (if none, then continue big loop)
 		if len(otherPlayerObj.nodes) == 0:
 			yield from bot.send_message( ctx.message.channel, "No nodes to target." )
-			return False #if False, continue
+			return -1 #if False, continue
 			
 		msg = yield from bot.send_message( ctx.message.channel, "Use reactions to indicate which of your opponent's Nodes to target." )
 		for i in range( len(otherPlayerObj.nodes) ):
@@ -105,7 +139,7 @@ def getTarget( playedObject, activePlayerObj, activePlayer, otherPlayerObj, ctx 
 		#React to self up to amount of friendly nodes (if none, then continue big loop)
 		if len(activePlayerObj.nodes) == 0:
 			yield from bot.send_message( ctx.message.channel, "No nodes to target." )
-			return False
+			return -1
 			
 		msg = yield from bot.send_message( ctx.message.channel, "Use reactions to indicate which of your Nodes to target." )
 		for i in range( len(activePlayerObj.nodes) ):
@@ -127,36 +161,40 @@ def getTarget( playedObject, activePlayerObj, activePlayer, otherPlayerObj, ctx 
 #New round in a match started
 @asyncio.coroutine
 def startRound( match, activePlayer, activePlayerObj, otherPlayer, otherPlayerObj, ctx ):
-
+	#check if game still exists
+	if not mechanics.isGameRunning( match ):
+		return
 	#check if milled out when drawing a card (maybe condense this chunk somehow)
 	if not activePlayerObj.drawCard():
 		yield from bot.send_message( ctx.message.channel, activePlayer.name + " milled out!" )
-		yield from mechanics.gameOver( otherPlayer, activePlayer, matches, bot, ctx )
+		yield from mechanics.gameOver( activePlayer.id )
 		return
 	
 	#Energy costs (oooh actual phase orders are showing c:)
-	activePlayerObj.lifeforce += activePlayerObj.energy
+	yield from mechanics.heal( activePlayerObj, activePlayerObj.energy )
+	
+	#check if game still exists
+	if not mechanics.isGameRunning( match ):
+		return
 	
 	#Activate all of active player's nodes/initialize turn-based vars
-	for thisNode in activePlayerObj.nodes:
-		mechanics.activateNode( thisNode, activePlayerObj, otherPlayerObj, activePlayer, otherPlayer, matches, bot )
-		yield from bot.send_message( ctx.message.channel, activePlayerObj.name + " activated Node: " + str(mechanics.nodeList[thisNode.lower()]) )
+	if len(activePlayerObj.nodes) > 0:
+		for thisNode in activePlayerObj.nodes.copy():
+			yield from mechanics.activateNode( thisNode, activePlayerObj, otherPlayerObj )
+		yield from bot.send_message( ctx.message.channel, activePlayerObj.name + " activated their start of turn abilities." )
 	activePlayerObj.newTurn()
 	otherPlayerObj.newTurn()
 	activePlayerObj.newMyTurn()
-	
-	#check if dead
-	if otherPlayerObj.lifeforce <= 0:
-		yield from mechanics.gameOver( activePlayer, otherPlayer, matches, bot, ctx )
-		return
-	elif activePlayerObj.lifeforce <= 0:
-		yield from mechanics.gameOver( otherPlayer, activePlayer, matches, bot, ctx )
+		
+	#check if game still exists
+	if not mechanics.isGameRunning( match ):
 		return
 		
 	#Send the info
 	yield from bot.send_message( ctx.message.channel, activePlayer.name + "'s turn." )
 	if not match.gameMessage == None:
 		yield from bot.delete_message( match.gameMessage )
+	yield from printLogs( match, ctx )
 	match.gameMessage = yield from bot.send_message( ctx.message.channel, str(activePlayerObj)+"\n\n"+str(otherPlayerObj)+"\nCommands: play, concede, pass, info, mill" )
 	
 	yield from sendHand( activePlayer, activePlayerObj, ctx )
@@ -167,6 +205,9 @@ def startRound( match, activePlayer, activePlayerObj, otherPlayer, otherPlayerOb
 	
 	#Wait for active player's command.
 	while True:
+		#check if game still exists
+		if not mechanics.isGameRunning( match ):
+			return
 		messageOriginal = yield from bot.wait_for_message( author=activePlayer, check=check, timeout=config.TURN_TIMEOUT )
 		
 		#Act within 500 seconds or game is lost
@@ -174,7 +215,8 @@ def startRound( match, activePlayer, activePlayerObj, otherPlayer, otherPlayerOb
 			message = messageOriginal.content.lower().split(' ',1)
 		except AttributeError:
 			yield from bot.send_message( ctx.message.channel, "Game timed out!" )
-			yield from mechanics.gameOver( otherPlayer, activePlayer, matches, bot, ctx )
+			match.timedOut = True
+			yield from mechanics.gameOver( activePlayer.id )
 			break
 	
 		if message[0] == 'info':
@@ -192,7 +234,7 @@ def startRound( match, activePlayer, activePlayerObj, otherPlayer, otherPlayerOb
 			#Get proper targets
 			playedObject = mechanics.cardList[message[1].lower()]
 			thisTarget = yield from getTarget( playedObject, activePlayerObj, activePlayer, otherPlayerObj, ctx )
-			if thisTarget == False:
+			if thisTarget == -1:
 				continue
 			
 			#Check if node generator (for 1 per turn limit)
@@ -202,11 +244,7 @@ def startRound( match, activePlayer, activePlayerObj, otherPlayer, otherPlayerOb
 					continue
 				else:
 					activePlayerObj.playedNode = True
-			keepGoing = yield from playCard( match, activePlayer, activePlayerObj, otherPlayer, otherPlayerObj, message[1], thisTarget, ctx )
-			if not keepGoing:
-				print('did this')
-				return
-				
+			yield from playCard( match, activePlayer, activePlayerObj, otherPlayer, otherPlayerObj, message[1], thisTarget, ctx )
 			continue
 			
 		elif message[0] == 'pass':
@@ -226,7 +264,7 @@ def startRound( match, activePlayer, activePlayerObj, otherPlayer, otherPlayerOb
 				continue
 		elif message[0] == 'concede':
 			yield from bot.send_message( ctx.message.channel, activePlayer.name + " conceded." )
-			yield from mechanics.gameOver( otherPlayer, activePlayer, matches, bot, ctx )
+			yield from mechanics.gameOver( activePlayer.id )
 			return
 
 #Challenge someone and initialize the fight
@@ -235,10 +273,10 @@ def startRound( match, activePlayer, activePlayerObj, otherPlayer, otherPlayerOb
 def challenge( ctx, target: discord.Member = None, *args ):
 	"""Challenge a friend to discordTCG! =challenge <@user> <wager>"""
 	
-	challenger = ctx.message.author.name
+	challengerID = ctx.message.author.id
 	
 	#Make sure neither player is in a game currently
-	if challenger in matches or target.name in matches:
+	if challengerID in config.matches or target.id in config.matches:
 		yield from bot.say( "A player is already in a match." )
 		return
 		
@@ -251,11 +289,11 @@ def challenge( ctx, target: discord.Member = None, *args ):
 	yield from bot.say( target.name + ", you've been challenged to a discordTCG match! Type 'accept' to accept." )
 	message = yield from bot.wait_for_message( author=target, content='accept', timeout=config.CHALLENGE_TIMEOUT )
 	if message is None:
-		yield from bot.say( challenger + ", your challenge was not accepted :(" )
+		yield from bot.say( ctx.message.author.name + ", your challenge was not accepted :(" )
 		return
 	
 	#check again here for duplicate accepts
-	if challenger in matches or target.name in matches:
+	if challengerID in config.matches or target.id in config.matches:
 		yield from bot.say( "A player is already in a match." )
 		return
 	
@@ -282,27 +320,28 @@ def challenge( ctx, target: discord.Member = None, *args ):
 		wager = 0
 	
 	#Initialize game
-	matches[challenger] = gamebase.TCGame( challenger, target.name, wager )
-	matches[challenger].chalObj = playerbase.Player( challenger, challengerDeck, [] )
-	matches[challenger].defObj = playerbase.Player( target.name, defenderDeck, [] )
-	matches[challenger].chalObj.shuffle()
-	matches[challenger].defObj.shuffle()
+	#TODO: [challenger] -> [ctx.message.author.id]
+	config.matches[challengerID] = gamebase.TCGame( challengerID, target.id, wager )
+	config.matches[challengerID].chalObj = playerbase.Player( ctx.message.author.name, challengerDeck, [], bot, ctx )
+	config.matches[challengerID].defObj = playerbase.Player( target.name, defenderDeck, [], bot, ctx )
+	config.matches[challengerID].chalObj.shuffle()
+	config.matches[challengerID].defObj.shuffle()
 	for i in range(config.STARTING_HAND_SIZE):
-		matches[challenger].chalObj.drawCard()
-		matches[challenger].defObj.drawCard()
-	matches[challenger].chalObj.opponent = matches[challenger].defObj
-	matches[challenger].defObj.opponent = matches[challenger].chalObj
-	print('A match has started. ' + str(challenger) + ' vs ' + str(target.name) + '!')
+		config.matches[challengerID].chalObj.drawCard()
+		config.matches[challengerID].defObj.drawCard()
+	config.matches[challengerID].chalObj.opponent = config.matches[challengerID].defObj
+	config.matches[challengerID].defObj.opponent = config.matches[challengerID].chalObj
+	print('A match has started. ' + str(ctx.message.author.name) + ' vs ' + str(target.name) + '!')
 	
 	#Start round 
 	if random.randint(0,1) == 0:
-		matches[challenger].chalObj.active = True
-		matches[challenger].defObj.energy += 1
-		yield from startRound( matches[challenger], ctx.message.author, matches[challenger].chalObj, target, matches[challenger].defObj, ctx )
+		config.matches[challengerID].chalObj.active = True
+		config.matches[challengerID].defObj.energy += 1
+		yield from startRound( config.matches[challengerID], ctx.message.author, config.matches[challengerID].chalObj, target, config.matches[challengerID].defObj, ctx )
 	else:
-		matches[challenger].defObj.active = True
-		matches[challenger].chalObj.energy += 1
-		yield from startRound( matches[challenger], target, matches[challenger].defObj, ctx.message.author, matches[challenger].chalObj, ctx )
+		config.matches[challengerID].defObj.active = True
+		config.matches[challengerID].chalObj.energy += 1
+		yield from startRound( config.matches[challengerID], target, config.matches[challengerID].defObj, ctx.message.author, config.matches[challengerID].chalObj, ctx )
 
 print("[-=-Loaded Cards-=-]\n")
 for cards in mechanics.cardList:

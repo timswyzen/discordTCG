@@ -12,6 +12,7 @@ class TCGame:
 		self.wager = wager
 		self.startTime = time.time()
 		self.gameMessage = None
+		self.timedOut = False
 		
 	def __str__(self):
 		return( self.challenger + " (HP: " + str(self.chalObj.lifeforce) + ") challenging " + self.defender + " (HP: " + str(self.defObj.lifeforce) + ")." )

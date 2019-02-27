@@ -4,16 +4,20 @@ from mechanics import nodeETB, sacNode, gameTrigger
 
 class Player:
 
-	def __init__(self, name, deck, hand):
+	def __init__(self, name, deck, hand, bot, ctx):
 		self.name = name
 		self.deck = deck #last element of deck is the top of the deck (next to draw)
 		self.hand = hand
+		self.bot = bot #so the bot can do its thing
+		self.ctx = ctx #so the bot can do its thing
 		self.energy = 2
 		self.lifeforce = 50
 		self.active = False
 		self.nodes = []
+		self.log = []
 		self.maxNodes = 6
 		self.eotEffects = []
+		self.nodesToTrigger = [] #ugh. triggers all nodes later cause yield from is DUMB.
 		self.milled = False #if they already used 'mill' this turn
 		self.playedNode = False #if they already played a node this turn
 		self.hunger = 10 #Rate of lifegain from sacrificing nodes (/10)
@@ -76,24 +80,25 @@ class Player:
 		
 	def randomDiscard(self):
 		if len(self.hand) > 0:
-			self.hand.pop( random.randint(0,len(self.hand)-1) )
-		gameTrigger( "DISCARD", self, None )
+			discarded = self.hand.pop( random.randint(0,len(self.hand)-1) )
+		gameTrigger( "DISCARD", self, discarded )
 		
 	def addNode(self, nodeName): #TODO: possibly move to mechanics.py for consistency with sacNode()
 		if self.opponent.opponentCantSpawnNodes:
 			return
 		gameTrigger( "NODESPAWN", self, nodeName )
 		if len(self.nodes) >= self.maxNodes:
-			sacNode( self, self.opponent, self.nodes[self.maxNodes-1] )
+			sacNode( self, self.opponent, self.maxNodes-1 )
 		self.nodes.insert(0, nodeName)
 		nodeETB( self, nodeName )
 		
 		
 	def burn(self, amt): #Milling without lifeforce gain
+		burnedCards = []
 		for i in range(amt):
 			if len(self.deck) > 0:
-				self.deck.pop()
-		gameTrigger( "BURN", self, amt )
+				burnedCards.append( self.deck.pop() )
+		gameTrigger( "BURN", self, burnedCards )
 			
 	def removeNode(self, nodeName, enerCost):
 		for node in self.nodes:
@@ -103,5 +108,10 @@ class Player:
 		self.energy = self.energy - enerCost
 			
 	def __str__(self):
-		return "[--"+self.name+"--]\nHP: "+str(self.lifeforce)+"\nEnergy: "+ str(self.energy) +"\nCards in hand: "+str(len(self.hand))+"\nCards in deck: "+str(len(self.deck))+"\nNodes: "+str(self.nodes)+"\nHunger: "+str(self.hunger)+"\nDesperation: "+str(self.desperation)
-		
+		#return "[--"+self.name+"--]\nHP: "+str(self.lifeforce)+"\nEnergy: "+ str(self.energy) +"\nCards in hand: "+str(len(self.hand))+"\nCards in deck: "+str(len(self.deck))+"\nNodes: "+str(self.nodes)+"\nHunger: "+str(self.hunger)+"\nDesperation: "+str(self.desperation)
+		return ("[--- :crossed_swords: **"+self.name.upper()+"** :crossed_swords: ---]\n" +
+			":heart: LF: *"+str(self.lifeforce)+" ("+str(self.energy)+" energy)*\n" +
+			":flower_playing_cards: Cards in hand: *" + str(len(self.hand)) + " (+" + str(len(self.deck)) + " deck)*\n" +
+			":gear: Nodes: *" + str(self.nodes) + "*\n" + 
+			":green_apple: Hunger: *" + str(self.hunger) + "*\n" + 
+			":hourglass: Desperation: *" + str(self.desperation) + "*")

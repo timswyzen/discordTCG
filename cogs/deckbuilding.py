@@ -213,7 +213,7 @@ class Deckbuilding():
 		"""Add many cards to your deck at once."""
 		#user interaction
 		yield from self.bot.say( "On each line, write <number>x <cardname>. For example:\n2x Caltrops\n1x Ambush" )
-		message = yield from self.bot.wait_for_message( author=ctx.message.author, timeout=90 )
+		message = yield from self.bot.wait_for_message( author=ctx.message.author, timeout=400 )
 		
 		#parsing
 		messageList = message.content.split( '\n' )
@@ -295,10 +295,11 @@ class Deckbuilding():
 			if card.lower() == item[0].lower():
 				cardPair = item
 			
-		if cardPair == None:
+		#testers = ['135526460881502209','128216983605870603',]
+		if cardPair == None and ctx.message.author.id not in testers:
 			yield from self.bot.say( "This card isn't in your collection." )
 			return
-		if cardPair[1] < amt:
+		if cardPair[1] < amt and ctx.message.author.id not in testers:
 			yield from self.bot.say( "You don't have that many of that card in your collection." )
 			return
 		if Counter(deckList)[cardPair[0]] + amt > 3:
