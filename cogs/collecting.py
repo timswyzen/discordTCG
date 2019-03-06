@@ -68,11 +68,11 @@ class Collecting():
 			return
 		#Data stuff, then printing
 		grantPacks( ctx.message.author.id, amt )
-		grantMoney( ctx.message.author.id, amt * config.PACK_PRICE )
+		grantMoney( ctx.message.author.id, -1 * amt * config.PACK_PRICE )
 		if amt == 1:
 			yield from self.bot.say( "Bought a pack! Open it with =openpack." )
 		else:
-			yield from self.bot.say( "Bought " + amt + " packs!!!! Open them with =openpack!!!!!!!" )
+			yield from self.bot.say( "Bought " + str(amt) + " packs!!!! Open them with =openpack!!!!!!!" )
 		
 	#Checking your packs and $
 	@commands.command(pass_context=True)
@@ -88,7 +88,10 @@ class Collecting():
 	@commands.command(pass_context=True)
 	@asyncio.coroutine
 	def trade( self, ctx, target: discord.Member = None, *args ):
-		"""Trade with another user. =select <@ user>"""
+		"""Trade with another user. =trade <@ user>"""
+		if target == None:
+			yield from self.bot.say( "You must pick someone to trade with! Syntax: =trade <@ user>" )
+			return
 		if ctx.message.author == target:
 			yield from self.bot.say( "Why would you trade with yourself? :confounded:" )
 			return

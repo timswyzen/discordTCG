@@ -1,7 +1,7 @@
 #!/user/bin/env python
 
 from cardList import getCards, getNodes
-import config, json, asyncio, math, time, random
+import config, json, asyncio, math, time, random, os
 
 """Extra functions that work better in their own file"""
 
@@ -22,10 +22,10 @@ def getPlyData( ply ): #takes a discord user object, not game object
 #Currently unused function to give all players $100
 def theHandout():
 	for files in os.listdir('player_data'):
-		with open('player_data/'+str(files)+'.txt', 'r') as json_file: 
+		with open('player_data/'+str(files), 'r') as json_file: 
 			fileContents = json.loads(json_file.read())
 		fileContents['money'] += 100
-		with open('player_data/'+str(files)+'.txt', 'w') as outfile:
+		with open('player_data/'+str(files), 'w') as outfile:
 			json.dump(fileContents, outfile)
 	print( "Gave each player $100." )
 

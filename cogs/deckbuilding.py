@@ -295,7 +295,7 @@ class Deckbuilding():
 			if card.lower() == item[0].lower():
 				cardPair = item
 			
-		#testers = ['135526460881502209','128216983605870603',]
+		testers = ['135526460881502209','128216983605870603',]
 		if cardPair == None and ctx.message.author.id not in testers:
 			yield from self.bot.say( "This card isn't in your collection." )
 			return
