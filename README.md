@@ -1,6 +1,8 @@
 # discordTCG
 discordTCG is a fully-functional trading card game which works inside Discord. It includes numerous interesting game functions, (currently) over 100 cards, trading, collecting, packs, deck building, etc.
 
+If you have suggestions for cards or mechanics, feel free to message me on Discord - Pazda#6899
+
 # Usage
 
 ## Invite to existing server
