@@ -1,5 +1,5 @@
 # discordTCG
-Trading card game as a Discord bot
+discordTCG is a fully-functional trading card game which works inside Discord. It includes numerous interesting game functions, (currently) over 100 cards, trading, collecting, packs, deck building, etc.
 
 # Usage
 
