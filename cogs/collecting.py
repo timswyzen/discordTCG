@@ -5,7 +5,7 @@ import asyncio, json, os, random
 from mechanics import cardList, getPlyData, grantCard, grantMoney, grantPacks, getBal, getPacks
 import config
 
-class Collecting():
+class Collecting(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 		
@@ -16,10 +16,10 @@ class Collecting():
 		"""OPEN A SHINY NEW PACK!"""
 		try:
 			if getPacks( ctx.message.author.id ) < 1:
-				yield from self.bot.say( "You don't have any packs to open :( Use =buy to get more!" )
+				yield from ctx.message.channel.send( "You don't have any packs to open :( Use =buy to get more!" )
 				return
 		except:
-			yield from self.bot.say( "You aren't registered yet. Use =register" )
+			yield from ctx.message.channel.send( "You aren't registered yet. Use =register" )
 			return
 			
 		#Grab all the cards
@@ -47,7 +47,7 @@ class Collecting():
 		stringToSay += ":star: :star: **RARE: " + cardsReceived[7] + "**\n"
 		stringToSay += ":star: :star2: :star2: :star2: :star2: :star2: :star2: :star2: :star2: :star2: :star:"
 		
-		yield from self.bot.say( stringToSay )
+		yield from ctx.message.channel.send( stringToSay )
 		
 		#Set their data
 		for card in cardsReceived:
@@ -61,18 +61,18 @@ class Collecting():
 		"""Buy some packs! =buy <amount>"""
 		#Just make sure they can
 		if amt < 1:
-			yield from self.bot.say( "Invalid input." )
+			yield from ctx.message.channel.send( "Invalid input." )
 			return
 		if getBal( ctx.message.author.id ) < amt * config.PACK_PRICE:
-			yield from self.bot.say( "Not enough money for " + str(amt) + " packs. They are currently $" + str(config.PACK_PRICE) + " each." )
+			yield from ctx.message.channel.send( "Not enough money for " + str(amt) + " packs. They are currently $" + str(config.PACK_PRICE) + " each." )
 			return
 		#Data stuff, then printing
 		grantPacks( ctx.message.author.id, amt )
 		grantMoney( ctx.message.author.id, -1 * amt * config.PACK_PRICE )
 		if amt == 1:
-			yield from self.bot.say( "Bought a pack! Open it with =openpack." )
+			yield from ctx.message.channel.send( "Bought a pack! Open it with =openpack." )
 		else:
-			yield from self.bot.say( "Bought " + str(amt) + " packs!!!! Open them with =openpack!!!!!!!" )
+			yield from ctx.message.channel.send( "Bought " + str(amt) + " packs!!!! Open them with =openpack!!!!!!!" )
 		
 	#Checking your packs and $
 	@commands.command(pass_context=True)
@@ -80,9 +80,9 @@ class Collecting():
 	def bal( self, ctx, *args ):
 		"""Get your current balance and amount of packs."""
 		try:
-			yield from self.bot.say( "You currently have $" + str(getBal(ctx.message.author.id)) + " and "+str(getPacks(ctx.message.author.id))+" pack(s)." )
+			yield from ctx.message.channel.send( "You currently have $" + str(getBal(ctx.message.author.id)) + " and "+str(getPacks(ctx.message.author.id))+" pack(s)." )
 		except:
-			yield from self.bot.say( "You aren't registered. Use =register" )
+			yield from ctx.message.channel.send( "You aren't registered. Use =register" )
 		
 	#Trading
 	@commands.command(pass_context=True)
@@ -90,17 +90,17 @@ class Collecting():
 	def trade( self, ctx, target: discord.Member = None, *args ):
 		"""Trade with another user. =trade <@ user>"""
 		if target == None:
-			yield from self.bot.say( "You must pick someone to trade with! Syntax: =trade <@ user>" )
+			yield from ctx.message.channel.send( "You must pick someone to trade with! Syntax: =trade <@ user>" )
 			return
 		if ctx.message.author == target:
-			yield from self.bot.say( "Why would you trade with yourself? :confounded:" )
+			yield from ctx.message.channel.send( "Why would you trade with yourself? :confounded:" )
 			return
 		trader, tradee = [], []
-		yield from self.bot.say( "Type 'quit' at any time to quit the trade menu." )
-		yield from self.bot.say( "What are you offering? Syntax: <amount>x <card> or $<money amount>. For example:\n2x Voracity\n$20" )
-		message = yield from self.bot.wait_for_message( author=ctx.message.author, timeout=90 )
+		yield from ctx.message.channel.send( "Type 'quit' at any time to quit the trade menu." )
+		yield from ctx.message.channel.send( "What are you offering? Syntax: <amount>x <card> or $<money amount>. For example:\n2x Voracity\n$20" )
+		message = yield from self.bot.wait_for( 'message', check=lambda message: message.author == ctx.message.author, timeout=90 )
 		if message.content.lower().startswith('quit'):
-			yield from self.bot.say( "Quit the trade menu." )
+			yield from ctx.message.channel.send( "Quit the trade menu." )
 			return
 		
 		#Setting up data for trader's offerings
@@ -112,7 +112,7 @@ class Collecting():
 		try:
 			playerData = getPlyData(ctx.message.author)
 		except:
-			yield from self.bot.say( "You aren't registered yet. Type =register" )
+			yield from ctx.message.channel.send( "You aren't registered yet. Type =register" )
 			return
 			
 		#Go through the cards and validate, then add to trade
@@ -123,7 +123,7 @@ class Collecting():
 				with open('player_data/'+str(ctx.message.author.id)+'.txt', 'r') as json_file: 
 					traderMoney = json.loads(json_file.read())['money']
 				if traderMoney < int(cardEntry[0][1:]) or int(cardEntry[0][1:]) < 0:
-					yield from self.bot.say( "You don't have enough money." )
+					yield from ctx.message.channel.send( "You don't have enough money." )
 					return
 				trader.append( cardEntry[0][1:] )
 			else:	
@@ -132,22 +132,22 @@ class Collecting():
 						if cardEntry[1].lower() == item[0].lower():
 							cardPair = item
 				except:
-					yield from self.bot.say( "Invalid format!" )
+					yield from ctx.message.channel.send( "Invalid format!" )
 					return
 					
 				if cardPair == None:
-					yield from self.bot.say( cardEntry[1] + " isn't in your collection." )
+					yield from ctx.message.channel.send( cardEntry[1] + " isn't in your collection." )
 					return
 				if cardPair[1] < int(cardEntry[0]):
-					yield from self.bot.say( "You don't have that many "+cardEntry[1]+" in your collection." )
+					yield from ctx.message.channel.send( "You don't have that many "+cardEntry[1]+" in your collection." )
 					return
 				
 				trader.append(cardEntry)
 		
-		yield from self.bot.say( "What do you want in return? (same syntax)" )
-		message = yield from self.bot.wait_for_message( author=ctx.message.author, timeout=90 )
+		yield from ctx.message.channel.send( "What do you want in return? (same syntax)" )
+		message = yield from self.bot.wait_for( 'message', check=lambda message: message.author == ctx.message.author, timeout=90 )
 		if message.content.lower().startswith('quit'):
-			yield from self.bot.say( "Quit the trade menu." )
+			yield from ctx.message.channel.send( "Quit the trade menu." )
 			return
 		
 		#Setting up data for trader's offerings
@@ -159,7 +159,7 @@ class Collecting():
 		try:
 			playerData = getPlyData(target)
 		except:
-			yield from self.bot.say( "Target isn't registered yet." )
+			yield from ctx.message.channel.send( "Target isn't registered yet." )
 			return
 			
 		#Go through cards and validate, then add to trade
@@ -170,7 +170,7 @@ class Collecting():
 				with open('player_data/'+str(target.id)+'.txt', 'r') as json_file: 
 					tradeeMoney = json.loads(json_file.read())['money']
 				if tradeeMoney < int(cardEntry[0][1:]) or int(cardEntry[0][1:]) < 0:
-					yield from self.bot.say( "He or she doesn't have enough money." )
+					yield from ctx.message.channel.send( "He or she doesn't have enough money." )
 					return
 				tradee.append( cardEntry[0][1:] )
 			else:	
@@ -179,26 +179,27 @@ class Collecting():
 						if cardEntry[1].lower() == item[0].lower():
 							cardPair = item
 				except:
-					yield from self.bot.say( "Invalid format!" )
+					yield from ctx.message.channel.send( "Invalid format!" )
 					return
 					
 				if cardPair == None:
-					yield from self.bot.say( cardEntry[1] + " isn't in your collection." )
+					yield from ctx.message.channel.send( cardEntry[1] + " isn't in your collection." )
 					return
 				if cardPair[1] < int(cardEntry[0]):
-					yield from self.bot.say( "You don't have that many "+cardEntry[1]+" in your collection." )
+					yield from ctx.message.channel.send( "You don't have that many "+cardEntry[1]+" in your collection." )
 					return
 				
 				tradee.append(cardEntry)
 		#wow that was a lot. let's get the other user's approval then do the trade now.
 		print(str(trader) + " | " + str(tradee))
-		def check(msg):
-			print('checking')
-			return msg.content.lower().startswith('yes') or msg.content.lower().startswith('no')
-		yield from self.bot.say(  target.name + ": Do you accept the above trade? ('yes' or 'no')" )
-		message = yield from self.bot.wait_for_message( author=target, check=check, timeout=30 )
+		def check(author):
+			def inner_check(msg):
+				return (msg.content.lower().startswith('yes') or msg.content.lower().startswith('no')) and msg.author == author
+				
+		yield from ctx.message.channel.send(  target.name + ": Do you accept the above trade? ('yes' or 'no')" )
+		message = yield from self.bot.wait_for( 'message', check=check(ctx.message.author), timeout=30 )
 		if message.content.lower().startswith('no'):
-			yield from self.bot.say( "Trade request denied." )
+			yield from ctx.message.channel.send( "Trade request denied." )
 			return
 		#Complete the trade
 		elif message.content.lower().startswith('yes'):
@@ -218,7 +219,7 @@ class Collecting():
 				else:
 					grantCard( target.id, item[1], item[0] )
 					grantCard( ctx.message.author.id, item[1], -1*int(item[0]) )
-			yield from self.bot.say( "Trade complete!" )
+			yield from ctx.message.channel.send( "Trade complete!" )
 
 def setup(bot):
 	bot.add_cog(Collecting(bot))

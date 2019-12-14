@@ -11,7 +11,7 @@ defaultDeck1 = ["Minor Recharge", "Minor Recharge", "Killer's Aura", "Killer's A
 
 defaultDeck2 = ["Maul", "Snipe", "Snipe", "Swing", "Swing", "Swing", "Stimulation", "Stimulation", "Double Tap", "Minor Recharge", "Minor Recharge", "Neuron Boost", "Neuron Boost", "Minor Panic", "Minor Panic", "Minor Panic", "Beg for Mercy", "Beg for Mercy", "Fizzle", "Fizzle", "False Hope", "False Hope", "Shattered Mind", "Last Meal", "Last Meal", "Last Crumb", "Last Crumb", "Recursion", "Recursion", "Voracity", "Voracity", "Mind Swap", "Mind Swap", "Voracity", "Unwilling Sacrifice", "Unwilling Sacrifice", "Bloody Pentagram", "Bloody Pentagram", "Siphon Power", "Siphon Power", "Confusion", "Confusion"]
 
-class InfoCommands():
+class InfoCommands(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 		
@@ -33,10 +33,10 @@ class InfoCommands():
 				i+=1
 				if i>=10:
 					i=0
-					yield from self.bot.say( stringToSay )
+					yield from ctx.message.channel.send( stringToSay )
 					stringToSay = ""
 		if not stringToSay == "":
-			yield from self.bot.say( stringToSay )
+			yield from ctx.message.channel.send( stringToSay )
 			
 	#Search Node via description
 	@commands.command(pass_context=True)
@@ -56,10 +56,10 @@ class InfoCommands():
 				i+=1
 				if i>=10:
 					i=0
-					yield from self.bot.say( stringToSay )
+					yield from ctx.message.channel.send( stringToSay )
 					stringToSay = ""
 		if not stringToSay == "":
-			yield from self.bot.say( stringToSay )
+			yield from ctx.message.channel.send( stringToSay )
 		
 	#Get Node information 
 	@commands.command(pass_context=True)	
@@ -69,9 +69,9 @@ class InfoCommands():
 		try:
 			query = ' '.join( args ).lower()
 			if query.lower() in nodeList:
-				yield from self.bot.say( str( nodeList[query.lower()] ) )
+				yield from ctx.message.channel.send( str( nodeList[query.lower()] ) )
 			else:
-				yield from self.bot.say( "Node not found." )
+				yield from ctx.message.channel.send( "Node not found." )
 		except Exception as e:
 			print(e)
 			
@@ -87,7 +87,7 @@ class InfoCommands():
 				uncommons.append( cardList[card].name )
 			elif cardList[card].rarity == 'R':
 				rares.append( cardList[card].name )
-		yield from self.bot.say( str(len(commons)) + " Commons, " + str(len(uncommons)) + " Uncommons, and " + str(len(rares)) + " Rare cards exist.\nThere are " + str(len(commons)+len(uncommons)+len(rares)) + " cards in total, not counting Special cards." )
+		yield from ctx.message.channel.send( str(len(commons)) + " Commons, " + str(len(uncommons)) + " Uncommons, and " + str(len(rares)) + " Rare cards exist.\nThere are " + str(len(commons)+len(uncommons)+len(rares)) + " cards in total, not counting Special cards." )
 	
 	#Get card information 
 	@commands.command(pass_context=True)	
@@ -97,9 +97,9 @@ class InfoCommands():
 		try:
 			query = ' '.join( args ).lower()
 			if query in cardList:
-				yield from self.bot.say( str( cardList[query.lower()] ) )
+				yield from ctx.message.channel.send( str( cardList[query.lower()] ) )
 			else:
-				yield from self.bot.say( "Card not found." )
+				yield from ctx.message.channel.send( "Card not found." )
 		except Exception as e:
 			print(e)
 			
@@ -111,9 +111,9 @@ class InfoCommands():
 		try:
 			query = ' '.join( args )
 			if query in config.DEFINITIONS.keys():
-				yield from self.bot.say( config.DEFINITIONS[query.lower()] )
+				yield from ctx.message.channel.send( config.DEFINITIONS[query.lower()] )
 			else:
-				yield from self.bot.say( "Term not found." )
+				yield from ctx.message.channel.send( "Term not found." )
 		except Exception as e:
 			print(e)
 			
@@ -126,29 +126,29 @@ class InfoCommands():
 			card = ' '.join( args )
 			cardLower = card.lower()
 		except:
-			yield from self.bot.say( "Incorrect syntax. =showoff <cardname>" )
+			yield from ctx.message.channel.send( "Incorrect syntax. =showoff <cardname>" )
 		
 		try:
 			if cardLower in [x.lower() for x in getPlyData( ctx.message.author )['collection'].keys()]:
-				yield from self.bot.say( ctx.message.author.name + " has a shiny " + card + "!" )
+				yield from ctx.message.channel.send( ctx.message.author.name + " has a shiny " + card + "!" )
 			else:
-				yield from self.bot.say( ctx.message.author.name + " doesn't even have a " + card + ". What a loser!" )
+				yield from ctx.message.channel.send( ctx.message.author.name + " doesn't even have a " + card + ". What a loser!" )
 		except:
-			yield from self.bot.say( "You need to be registered to show stuff off. =register" )
+			yield from ctx.message.channel.send( "You need to be registered to show stuff off. =register" )
 			
 	#Credits
 	@commands.command(pass_context=True)
 	@asyncio.coroutine
 	def credits( self, ctx, *args ):
 		"""See who worked in this kick-butt project!"""
-		yield from self.bot.say( "[-------------=Credits=-------------]\n---[--------Version "+config.VERSION+"--------]---\n**Developer/Creator**: Tim Swyzen\n**Game Design**: John Kay, Tim Swyzen" )
+		yield from ctx.message.channel.send( "[-------------=Credits=-------------]\n---[--------Version "+config.VERSION+"--------]---\n**Developer/Creator**: Tim Swyzen\n**Game Design**: John Kay, Tim Swyzen" )
 		
 	#Tutorial
 	@commands.command(pass_context=True)
 	@asyncio.coroutine
 	def tutorial( self, ctx, *args ):
 		"""Get a link to the beginner's guide."""
-		yield from self.bot.say( "Beginner's Guide: https://pastebin.com/Y70FZ49Q" )
+		yield from ctx.message.channel.send( "Beginner's Guide: https://pastebin.com/Y70FZ49Q" )
 			
 	#Get an 'account'
 	@commands.command(pass_context=True)
@@ -157,7 +157,7 @@ class InfoCommands():
 		"""Get an account before you can start playing"""
 		playerID = ctx.message.author.id
 		if os.path.isfile('player_data/'+str(playerID)+'.txt'):
-			yield from self.bot.say( "You're already registered." )
+			yield from ctx.message.channel.send( "You're already registered." )
 			return
 		playerData = {
 			"collection": {
@@ -202,7 +202,7 @@ class InfoCommands():
 		with open('player_data/'+str(playerID)+'.txt', 'w') as outfile:
 			json.dump(playerData, outfile)
 		
-		yield from self.bot.say( "Registration successful!" )
+		yield from ctx.message.channel.send( "Registration successful!" )
 
 		
 def setup(bot):
