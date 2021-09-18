@@ -14,5 +14,10 @@ If you have suggestions for cards or mechanics, feel free to message me on Disco
 2. In config.py, add your bot key that the Discord Developer section should grant
 3. Run matchFunctions.py
 
+## Potential features
+- Multiple triggers per Node
+- Trigger cleanup
+- Integrations with other bots
+
 To add cards, use the New Card.py file and "fill in the blanks". [API Documentation](https://github.com/Pazda/discordTCG/wiki)
 To add nodes, do the same with New Node.py.
