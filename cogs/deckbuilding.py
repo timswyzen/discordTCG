@@ -58,19 +58,19 @@ class Deckbuilding(commands.Cog):
             return
 
         with open('player_data/' + str(ctx.message.author.id) + '.txt', 'r') as json_file:
-            fileContents = json.loads(json_file.read())
-        stringToPrint = ""
+            file_contents = json.loads(json_file.read())
+        string_to_print = ""
         for i in range(5):
-            if fileContents['decknames'][i] == "":
-                stringToPrint += str(i + 1) + ": (no name) [" + str(len(fileContents['decks'][i])) + " cards]"
+            if file_contents['decknames'][i] == "":
+                string_to_print += str(i + 1) + ": (no name) [" + str(len(file_contents['decks'][i])) + " cards]"
             else:
-                stringToPrint += str(i + 1) + ": " + fileContents['decknames'][i] + " [" + str(
-                    len(fileContents['decks'][i])) + " cards]"
-            if i == fileContents['selectedDeck']:
-                stringToPrint += " SELECTED"
-            stringToPrint += "\n"
+                string_to_print += str(i + 1) + ": " + file_contents['decknames'][i] + " [" + str(
+                    len(file_contents['decks'][i])) + " cards]"
+            if i == file_contents['selectedDeck']:
+                string_to_print = "**" + string_to_print + "**"
+            string_to_print += "\n"
 
-        yield from ctx.message.channel.send(stringToPrint)
+        yield from ctx.message.channel.send(string_to_print)
 
     # Rename a deck
     @commands.command(pass_context=True)
