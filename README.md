@@ -18,6 +18,7 @@ If you have suggestions for cards or mechanics, feel free to message me on Disco
 - Multiple triggers per Node
 - Trigger cleanup
 - Integrations with other bots
+- Analytics
 
 ## Refactoring todo 
 - Make decorator for checking whether a player is registered
