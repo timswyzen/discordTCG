@@ -49,7 +49,7 @@ async def nodeETB(ply, nodeName):
 # Player sacrificed a node as part of an ability (for health)
 async def sacNode(ply, enemy, index):  # Returns the node OBJECT, not the name.
     removedNode = nodeList[ply.nodes[index].lower()]
-    removedNode.deathFunc(ply, enemy)  # gets rid of temp effects n stuff
+    await removedNode.deathFunc(ply, enemy)  # gets rid of temp effects n stuff
     ply.nodes.remove(ply.nodes[index])
     healthToGain = abs(round(0.1 * ply.hunger * removedNode.energy))
     if 'Feast' not in ply.nodes and 'Feast' not in enemy.nodes:  # card...specific......

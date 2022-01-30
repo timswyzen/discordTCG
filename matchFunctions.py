@@ -112,6 +112,10 @@ async def playCard(match, activePlayer, activePlayerObj, opponent, opponentObj, 
 
 async def getTarget(playedObject, activePlayerObj, activePlayer, otherPlayerObj, ctx):
     targetEmojis = ['0⃣', '1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣', '8⃣', '9⃣', '🔟']
+
+    def checkTarget(reaction, user):
+        return user == activePlayer and str(reaction) in targetEmojis
+
     if playedObject.targets == None:
         return None
     elif playedObject.targets == "ENEMY_NODE":
@@ -122,12 +126,16 @@ async def getTarget(playedObject, activePlayerObj, activePlayer, otherPlayerObj,
 
         msg = await ctx.message.channel.send("Use reactions to indicate which of your opponent's Nodes to target.")
         for i in range(len(otherPlayerObj.nodes)):
-            # await bot.add_reaction(msg, targetEmojis[i + 1])
             await msg.add_reaction(targetEmojis[i + 1])
 
         # Wait for reaction from that list
-        res = await bot.wait_for_reaction(emoji=targetEmojis, message=msg, user=activePlayer)
-        thisTarget = targetEmojis.index(str(res.reaction.emoji)) - 1
+        try:
+            reaction, user = await bot.wait_for('reaction_add', check=checkTarget, timeout=200.0)
+        except asyncio.TimeoutError:
+            await ctx.message.channel.send("Timed out waiting for target. Defaulting to first target.")
+            return 0
+
+        thisTarget = targetEmojis.index(str(reaction.emoji)) - 1
         return thisTarget
     elif playedObject.targets == "FRIENDLY_NODE":
         # React to self up to amount of friendly nodes (if none, then continue big loop)
@@ -140,8 +148,13 @@ async def getTarget(playedObject, activePlayerObj, activePlayer, otherPlayerObj,
             await msg.add_reaction(targetEmojis[i + 1])
 
         # Wait for reaction from that list
-        res = await bot.wait_for_reaction(emoji=targetEmojis, message=msg, user=activePlayer)
-        thisTarget = targetEmojis.index(str(res.reaction.emoji)) - 1
+        try:
+            reaction, user = await bot.wait_for('reaction_add', check=checkTarget, timeout=200.0)
+        except asyncio.TimeoutError:
+            await ctx.message.channel.send("Timed out waiting for target. Defaulting to first target.")
+            return 0
+
+        thisTarget = targetEmojis.index(str(reaction.emoji)) - 1
         return thisTarget
 
     elif playedObject.targets == "PLAYER":
@@ -149,8 +162,14 @@ async def getTarget(playedObject, activePlayerObj, activePlayer, otherPlayerObj,
             "Use reactions to indicate which player to target (1 is yourself, 2 is your opponent).")
         for i in range(2):
             await msg.add_reaction(targetEmojis[i + 1])
-        res = await bot.wait_for_reaction(emoji=targetEmojis, message=msg, user=activePlayer)
-        thisTarget = targetEmojis.index(str(res.reaction.emoji)) - 1
+
+        try:
+            reaction, user = await bot.wait_for('reaction_add', check=checkTarget, timeout=200.0)
+        except asyncio.TimeoutError:
+            await ctx.message.channel.send("Timed out waiting for target. Defaulting to first target.")
+            return 0
+
+        thisTarget = targetEmojis.index(str(reaction.emoji)) - 1
         return thisTarget
 
 
@@ -238,6 +257,7 @@ async def startRound(match, activePlayer, activePlayerObj, otherPlayer, otherPla
                 continue
 
             thisTarget = await getTarget(playedObject, activePlayerObj, activePlayer, otherPlayerObj, ctx)
+            print(thisTarget)
             if thisTarget == -1:
                 continue
 

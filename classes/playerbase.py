@@ -92,7 +92,7 @@ class Player:
         if len(self.nodes) >= self.maxNodes:
             await sacNode(self, self.opponent, self.maxNodes - 1)
         self.nodes.insert(0, nodeName)
-        nodeETB(self, nodeName)
+        await nodeETB(self, nodeName)
 
     async def burn(self, amt):  # Milling without lifeforce gain
         burnedCards = []
