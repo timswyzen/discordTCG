@@ -13,7 +13,7 @@ TYPE = "NodeGen"
 
 #What happens when you play it
 def playFunc(ply, enemy, target):
-	ply.addNode( 'Rapid Fire' )
+	yield from ply.addNode( 'Rapid Fire' )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

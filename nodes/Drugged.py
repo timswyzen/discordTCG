@@ -15,13 +15,13 @@ def playFunc(ply,enemy):
 	
 #Abilities that only happens when the Node is spawned
 def oneTimeFunc(ply,enemy):
-	ply.drawCard()
+	yield from ply.drawCard()
 	return
 	
 #What happens when it's sacrificed/killed
 def deathFunc(ply,enemy):
 	ply.energy -= 2
-	ply.randomDiscard()
+	yield from ply.randomDiscard()
 	return
 	
 #What happens when the TRIGGER is triggered

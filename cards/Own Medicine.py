@@ -14,9 +14,9 @@ TYPE = "PlyInteraction"
 #What happens when you play it
 def playFunc(ply, enemy, target):
 	if enemy.milled == True:
-		enemy.burn(5)
+		yield from enemy.burn(5)
 	else:
-		enemy.burn(2)
+		yield from enemy.burn(2)
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

@@ -11,7 +11,7 @@ TRIGGER = None
 
 #What happens when you play it (at the start of your turn)
 def playFunc(ply,enemy):
-	ply.drawCard()
+	yield from ply.drawCard()
 	return
 	
 #Abilities that only happens when the Node is spawned

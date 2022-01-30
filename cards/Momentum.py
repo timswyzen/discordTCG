@@ -13,10 +13,10 @@ TYPE = "PlyInteraction"
 
 #What happens when you play it
 def playFunc(ply, enemy, target):
-	ply.drawCard()
-	ply.drawCard()
+	yield from ply.drawCard()
+	yield from ply.drawCard()
 	if ply.playedNode == True:
-		ply.drawCard()
+		yield from ply.drawCard()
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

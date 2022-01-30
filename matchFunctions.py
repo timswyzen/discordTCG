@@ -38,7 +38,7 @@ def on_ready():
 @asyncio.coroutine
 def sendHand(player, playerObj, ctx):
     # delete last hand sent
-    if not playerObj.lastHandDM == None:
+    if playerObj.lastHandDM:
         yield from playerObj.lastHandDM.delete()
 
     # send hand
@@ -96,7 +96,7 @@ def playCard(match, activePlayer, activePlayerObj, opponent, opponentObj, cardNa
                                  targets) or []  # the or [] does something undefined but makes it work.
     # TODO: figure out why 'or []' works LMAO
     yield from ctx.message.channel.send(activePlayer.name + " played " + str(playedObject) + "\n\n")
-    mechanics.add_to_trigger_queue("PLAYED_CARD", activePlayerObj, playedObject.name)
+    yield from mechanics.add_to_trigger_queue("PLAYED_CARD", activePlayerObj, playedObject.name)
 
     # check if game still exists
     if not mechanics.isGameRunning(match):
@@ -165,7 +165,7 @@ def startRound(match, activePlayer, activePlayerObj, otherPlayer, otherPlayerObj
     if not mechanics.isGameRunning(match):
         return
     # check if milled out when drawing a card (maybe condense this chunk somehow)
-    if not activePlayerObj.drawCard():
+    if not (yield from activePlayerObj.drawCard()):
         yield from ctx.message.channel.send(activePlayer.name + " milled out!")
         yield from mechanics.gameOver(activePlayer.id)
         return
@@ -184,7 +184,7 @@ def startRound(match, activePlayer, activePlayerObj, otherPlayer, otherPlayerObj
         yield from ctx.message.channel.send(activePlayerObj.name + " activated their start of turn abilities.")
     activePlayerObj.newTurn()
     otherPlayerObj.newTurn()
-    activePlayerObj.newMyTurn()
+    yield from activePlayerObj.newMyTurn()
 
     # check if game still exists
     if not mechanics.isGameRunning(match):
@@ -212,12 +212,11 @@ def startRound(match, activePlayer, activePlayerObj, otherPlayer, otherPlayerObj
         if not mechanics.isGameRunning(match):
             return
 
-        messageOriginal = yield from bot.wait_for('message', check=check_command, timeout=config.TURN_TIMEOUT)
-
         # Act within 500 seconds or game is lost
         try:
+            messageOriginal = yield from bot.wait_for('message', check=check_command, timeout=config.TURN_TIMEOUT)
             message = messageOriginal.content.lower().split(' ', 1)
-        except AttributeError:
+        except TimeoutError:
             yield from ctx.message.channel.send("Game timed out!")
             match.timedOut = True
             yield from mechanics.gameOver(activePlayer.id)
@@ -233,11 +232,16 @@ def startRound(match, activePlayer, activePlayerObj, otherPlayer, otherPlayerObj
 
             # Ensure it's in hand
             if not any(message[1] in x.lower() for x in activePlayerObj.hand):
-                yield from ctx.message.channel.send("Played an invalid card.")
+                yield from ctx.message.channel.send("Played a card not in your hand.")
                 continue
 
             # Get proper targets
-            playedObject = mechanics.cardList[message[1].lower()]
+            try:
+                playedObject = mechanics.cardList[message[1].lower()]
+            except KeyError:
+                yield from ctx.message.channel.send("That card doesn't exist!")
+                continue
+
             thisTarget = yield from getTarget(playedObject, activePlayerObj, activePlayer, otherPlayerObj, ctx)
             if thisTarget == -1:
                 continue
@@ -265,7 +269,7 @@ def startRound(match, activePlayer, activePlayerObj, otherPlayer, otherPlayerObj
                 continue
             else:
                 activePlayerObj.milled = True
-                poppedCard, lifeToGain = mechanics.millCard(activePlayerObj)
+                poppedCard, lifeToGain = yield from mechanics.millCard(activePlayerObj)
                 yield from ctx.message.channel.send(
                     activePlayerObj.name + " milled " + poppedCard + " for " + str(lifeToGain) + " health.")
                 continue
@@ -299,8 +303,9 @@ def challenge(ctx, target: discord.Member = None, *args):
     def check(m):
         return m.author == target and m.content == 'accept'
 
-    message = yield from bot.wait_for('message', check=check, timeout=config.CHALLENGE_TIMEOUT)
-    if message is None:
+    try:
+        yield from bot.wait_for('message', check=check, timeout=config.CHALLENGE_TIMEOUT)
+    except TimeoutError:
         yield from ctx.message.channel.send(ctx.message.author.name + ", your challenge was not accepted :(")
         return
 
@@ -340,8 +345,8 @@ def challenge(ctx, target: discord.Member = None, *args):
     config.matches[challengerID].chalObj.shuffle()
     config.matches[challengerID].defObj.shuffle()
     for i in range(config.STARTING_HAND_SIZE):
-        config.matches[challengerID].chalObj.drawCard()
-        config.matches[challengerID].defObj.drawCard()
+        yield from config.matches[challengerID].chalObj.drawCard()
+        yield from config.matches[challengerID].defObj.drawCard()
     config.matches[challengerID].chalObj.opponent = config.matches[challengerID].defObj
     config.matches[challengerID].defObj.opponent = config.matches[challengerID].chalObj
     print('A match has started. ' + str(ctx.message.author.name) + ' vs ' + str(target.name) + '!')

@@ -14,9 +14,9 @@ TYPE = "NodeGen"
 #What happens when you play it
 def playFunc(ply, enemy, target):
 	if ply.nodes.count( 'Swarmer' ) >= 2:
-		mechanics.sacNode( ply, enemy, ply.nodes.index( 'Swarmer' ) )
-		mechanics.sacNode( ply, enemy, ply.nodes.index( 'Swarmer' ) )
-		ply.addNode( 'Swarm Queen' )
+		yield from mechanics.sacNode( ply, enemy, ply.nodes.index( 'Swarmer' ) )
+		yield from mechanics.sacNode( ply, enemy, ply.nodes.index( 'Swarmer' ) )
+		yield from ply.addNode( 'Swarm Queen' )
 	
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )

@@ -24,8 +24,9 @@ def deathFunc(ply,enemy):
 #What happens when the TRIGGER is triggered
 def triggerFunc(ply,enemy,discarded,affectedPlayer):
 	if affectedPlayer == "enemy":
-		ply.drawCard()
-	return
+		yield from ply.drawCard()
+	else:
+		return False
 	
 addNode( NAME, DESC, playFunc, oneTimeFunc, ENERGY, deathFunc, TRIGGER, triggerFunc )
 

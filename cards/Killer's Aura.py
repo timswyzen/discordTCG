@@ -13,7 +13,7 @@ TYPE = "PlyInteraction"
 
 #What happens when you play it
 def playFunc(ply, enemy, target):
-	enemy.burn( len(ply.nodes) )
+	yield from enemy.burn( len(ply.nodes) )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

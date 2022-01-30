@@ -25,7 +25,8 @@ def deathFunc(ply,enemy):
 def triggerFunc(ply,enemy,data,affectedPlayer):
 	if affectedPlayer == "enemy":
 		yield from mechanics.damage( enemy, 3 )
-	return
+	else:
+		return False
 	
 addNode( NAME, DESC, playFunc, oneTimeFunc, ENERGY, deathFunc, TRIGGER, triggerFunc )
 

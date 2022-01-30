@@ -15,7 +15,7 @@ TYPE = "PlyInteraction"
 def playFunc(ply, enemy, target):
 	ply.hand = []
 	for _ in range( 6 ):
-		ply.drawCard()
+		yield from ply.drawCard()
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

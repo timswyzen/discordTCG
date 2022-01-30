@@ -221,8 +221,13 @@ class Deckbuilding(commands.Cog):
         # user interaction
         yield from ctx.message.channel.send(
             "On each line, write <number>x <cardname>. For example:\n2x Caltrops\n1x Ambush")
-        message = yield from self.bot.wait_for('message', check=lambda message: message.author == ctx.message.author,
+
+        try:
+            message = yield from self.bot.wait_for('message', check=lambda message: message.author == ctx.message.author,
                                                timeout=400)
+        except TimeoutError:
+            ctx.message.channel.send("Timed out waiting for response. Cancelling bulk add.")
+            return
 
         # parsing
         messageList = message.content.split('\n')

@@ -15,8 +15,8 @@ TYPE = "NodeInteraction"
 #What happens when you play it
 def playFunc(ply, enemy, target):
 	if len(ply.nodes) > 0:
-		killedNode = mechanics.sacNode( ply, enemy, 0 )
-		ply.addNode( killedNode.name )
+		killedNode = yield from mechanics.sacNode( ply, enemy, 0 )
+		yield from ply.addNode( killedNode.name )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

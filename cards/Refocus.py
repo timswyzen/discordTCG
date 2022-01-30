@@ -15,7 +15,7 @@ TYPE = "PlyInteraction"
 def playFunc(ply, enemy, target):
 	ply.hunger += 3
 	ply.desperation += 3
-	ply.drawCard()
+	yield from ply.drawCard()
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

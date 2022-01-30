@@ -13,8 +13,8 @@ TYPE = "NodeGen"
 
 #What happens when you play it
 def playFunc(ply, enemy, target):
-	ply.addNode( 'Electricity' )
-	ply.addNode( 'Electricity' )
+	yield from ply.addNode( 'Electricity' )
+	yield from ply.addNode( 'Electricity' )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

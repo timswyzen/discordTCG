@@ -17,7 +17,7 @@ def playFunc(ply, enemy, target):
 		nodeChoices = []
 		for files in os.listdir('./nodes'):
 			nodeChoices.append(files[:-3])
-		ply.addNode( random.choice( nodeChoices ) )
+		yield from ply.addNode( random.choice( nodeChoices ) )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

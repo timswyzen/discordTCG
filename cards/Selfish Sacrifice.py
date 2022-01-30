@@ -14,7 +14,7 @@ TYPE = "NodeInteraction"
 #What happens when you play it
 def playFunc(ply, enemy, target):
 	if len(ply.nodes) > 0:
-		mechanics.sacNode( ply, enemy, target )
+		yield from mechanics.sacNode( ply, enemy, target )
 		yield from mechanics.heal( ply, 8 )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )

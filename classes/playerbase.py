@@ -1,4 +1,5 @@
 #!/user/bin/env python
+import asyncio
 import random
 from mechanics import nodeETB, sacNode, add_to_trigger_queue
 
@@ -35,6 +36,7 @@ class Player:
     def shuffle(self):
         random.shuffle(self.deck)
 
+    @asyncio.coroutine
     def addMaxNodes(self, amt):
         # set
         self.maxNodes += amt
@@ -44,7 +46,7 @@ class Player:
             self.maxNodes = 0
         # kill excess nodes
         while len(self.nodes) > self.maxNodes:
-            sacNode(ply, self.opponent, self.nodes[self.maxNodes])
+            yield from sacNode(ply, self.opponent, self.nodes[self.maxNodes])
 
     def newTurn(self):
         self.eotEffects = []
@@ -56,6 +58,7 @@ class Player:
             self.desperation = 0
         self.cardsThisTurn = 0
 
+    @asyncio.coroutine
     def newMyTurn(self):
         self.milled = False
         self.active = True
@@ -68,36 +71,41 @@ class Player:
             self.desperation -= self.desperationBoost
             self.desperationBoost = 0
         self.opponentCantSpawnNodes = False
-        add_to_trigger_queue("NEW_TURN", self, None)
+        yield from add_to_trigger_queue("NEW_TURN", self, None)
 
+
+    @asyncio.coroutine
     def drawCard(self):
         # mill out
         if len(self.deck) <= 0:
             return False
         self.hand.append(self.deck.pop())
+        yield from add_to_trigger_queue("DRAW", self, None)
         return True
-        add_to_trigger_queue("DRAW", self, None)
 
+    @asyncio.coroutine
     def randomDiscard(self):
         if len(self.hand) > 0:
             discarded = self.hand.pop(random.randint(0, len(self.hand) - 1))
-        add_to_trigger_queue("DISCARD", self, discarded)
+        yield from add_to_trigger_queue("DISCARD", self, discarded)
 
+    @asyncio.coroutine
     def addNode(self, nodeName):  # TODO: possibly move to mechanics.py for consistency with sacNode()
         if self.opponent.opponentCantSpawnNodes:
             return
-        add_to_trigger_queue("NODESPAWN", self, nodeName)
+        yield from add_to_trigger_queue("NODESPAWN", self, nodeName)
         if len(self.nodes) >= self.maxNodes:
-            sacNode(self, self.opponent, self.maxNodes - 1)
+            yield from sacNode(self, self.opponent, self.maxNodes - 1)
         self.nodes.insert(0, nodeName)
         nodeETB(self, nodeName)
 
+    @asyncio.coroutine
     def burn(self, amt):  # Milling without lifeforce gain
         burnedCards = []
         for i in range(amt):
             if len(self.deck) > 0:
                 burnedCards.append(self.deck.pop())
-        add_to_trigger_queue("BURN", self, burnedCards)
+        yield from add_to_trigger_queue("BURN", self, burnedCards)
 
     def removeNode(self, nodeName, enerCost):
         for node in self.nodes:

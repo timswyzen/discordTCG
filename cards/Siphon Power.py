@@ -15,7 +15,7 @@ TYPE = "PlyInteraction"
 #What happens when you play it
 def playFunc(ply, enemy, target):
 	for _ in range( math.floor(len(ply.nodes)/2) ):
-		ply.drawCard()
+		yield from ply.drawCard()
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

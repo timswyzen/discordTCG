@@ -56,7 +56,7 @@ def sacNode(ply, enemy, index):  # Returns the node OBJECT, not the name.
     if 'Feast' not in ply.nodes and 'Feast' not in enemy.nodes:  # card...specific......
         ply.lifeforce += healthToGain
     ply.energy -= removedNode.energy
-    add_to_trigger_queue("SAC", ply, removedNode)
+    yield from add_to_trigger_queue("SAC", ply, removedNode)
     return removedNode
 
 
@@ -66,7 +66,7 @@ def millCard(ply):
     cost = cardList[poppedCard.lower()].cost
     lifeToGain = abs(round(0.1 * ply.desperation * cost))
     ply.lifeforce += lifeToGain
-    add_to_trigger_queue("MILL", ply, None)
+    yield from add_to_trigger_queue("MILL", ply, None)
     return poppedCard, lifeToGain
 
 
@@ -196,7 +196,7 @@ def grantPacks(plyID, amount):
 # Automates damage dealing
 def damage(playerObj, amt):
     playerObj.lifeforce -= amt
-    add_to_trigger_queue("DAMAGE", playerObj, amt)
+    yield from add_to_trigger_queue("DAMAGE", playerObj, amt)
     if playerObj.lifeforce <= 0:
         yield from gameOver(playerObjToDiscordID(playerObj))  # no ids
         return
@@ -205,7 +205,7 @@ def damage(playerObj, amt):
 # Automates lifegain
 def heal(playerObj, amt):
     playerObj.lifeforce += amt
-    add_to_trigger_queue("HEAL", playerObj, amt)
+    yield from add_to_trigger_queue("HEAL", playerObj, amt)
     if playerObj.lifeforce <= 0:
         yield from gameOver(playerObjToDiscordID(playerObj))
         return
@@ -220,34 +220,44 @@ def add_to_trigger_queue(trigger, playerObj, dataPassed):
     Possible triggers: "HEAL", "DAMAGE", "BURN", "MILL", "SAC", "NODESPAWN", "PLAYED_CARD"
     All currently only trigger your opponent's Nodes. Eventually do this specific for each type.
     """
-    for node in playerObj.nodes:
-        if nodeList[node.lower()].triggerType == trigger:
-            playerObj.log.append(playerObj.name + "'s " + node + " was triggered.")
-            playerObj.nodesToTrigger.append([node.lower(), dataPassed, "friendly"])
-    for node in playerObj.opponent.nodes:
-        if nodeList[node.lower()].triggerType == trigger:
-            playerObj.log.append(playerObj.opponent.name + "'s " + node + " was triggered.")
-            playerObj.opponent.nodesToTrigger.append([node.lower(), dataPassed, "enemy"])
-    if trigger == "BURN":
-        playerObj.log.append(playerObj.name + " burned: " + str(dataPassed))
-    elif trigger == "SAC":
-        playerObj.log.append(playerObj.name + "'s " + dataPassed.name + " was destroyed or sacrificed.")
-    elif trigger == "DISCARD":
-        playerObj.log.append(playerObj.name + " discarded a " + dataPassed + ".")
-    elif trigger == "DAMAGE":
-        playerObj.log.append(playerObj.name + " took " + str(dataPassed) + " damage.")
-    elif trigger == "HEAL":
-        playerObj.log.append(playerObj.name + " healed for " + str(dataPassed) + ".")
 
-    trigger_queued_triggers(playerObj)
-    trigger_queued_triggers(playerObj.opponent)
+    print(f'Add to trigger queue {trigger} from {playerObj.name}')
+    # This try is to ignore the trigger from initial card draw
+    try:
+        for node in playerObj.nodes:
+            if nodeList[node.lower()].triggerType == trigger:
+
+                playerObj.nodesToTrigger.append([node.lower(), dataPassed, "friendly"])
+        for node in playerObj.opponent.nodes:
+            if nodeList[node.lower()].triggerType == trigger:
+                # playerObj.log.append(playerObj.opponent.name + "'s " + node + " was triggered.")
+                playerObj.opponent.nodesToTrigger.append([node.lower(), dataPassed, "enemy"])
+    except AttributeError:
+        return
 
 
+    if len(playerObj.nodesToTrigger) > 0:
+        yield from trigger_queued_triggers(playerObj)
+    if len(playerObj.opponent.nodesToTrigger) > 0:
+        yield from trigger_queued_triggers(playerObj.opponent)
+
+
+@asyncio.coroutine
 def trigger_queued_triggers(ply):
     """This function actually acts on the queued triggers for a player."""
+    print(ply.nodesToTrigger)
     opponent = ply.opponent
     if len(ply.nodesToTrigger) > 0:
-        for triggered in ply.nodesToTrigger:
-            yield from nodeList[triggered[0]].triggerFunc(ply, opponent, triggered[1],
-                                                                    triggered[2]) or []
+        while len(ply.nodesToTrigger) > 0:
+            triggered = ply.nodesToTrigger.pop()
+            print(triggered)
+            went_through = yield from nodeList[triggered[0]].triggerFunc(ply, opponent, triggered[1],
+                                                                         triggered[2]) or []
+
+            # If conditionals fail in a Node, they should explicitly return False. Otherwise, they'll be considered triggered.
+            if went_through != False:
+                node_name = nodeList[triggered[0].lower()].name
+                ply.log.append(ply.name + "'s " + node_name + " was triggered.")
+
+
         ply.nodesToTrigger = []
