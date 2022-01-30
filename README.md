@@ -20,6 +20,7 @@ If you have suggestions for cards or mechanics, feel free to open an Issue!
 - Multiple triggers per Node
 - Integrations with other bots
 - Analytics
+- Automatic testing
 
 ## Refactoring todo 
 - Rework trade monolith function?
