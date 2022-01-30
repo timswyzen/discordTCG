@@ -225,7 +225,7 @@ class Deckbuilding(commands.Cog):
         try:
             message = yield from self.bot.wait_for('message', check=lambda message: message.author == ctx.message.author,
                                                timeout=400)
-        except TimeoutError:
+        except asyncio.exceptions.TimeoutError:
             ctx.message.channel.send("Timed out waiting for response. Cancelling bulk add.")
             return
 
