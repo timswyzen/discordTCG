@@ -12,7 +12,7 @@ TARGETS = None
 TYPE = "PlyInteraction"
 
 #What happens when you play it
-def playFunc(ply, enemy, target):
+async def playFunc(ply, enemy, target):
 	if enemy.desperation >= 35:
 		enemy.lifeforce = round(enemy.lifeforce - enemy.lifeforce/2)
 	

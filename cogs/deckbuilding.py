@@ -14,8 +14,7 @@ class Deckbuilding(commands.Cog):
 
     # Select a decklist
     @commands.command(pass_context=True)
-    @asyncio.coroutine
-    def select(self, ctx, *args):
+    async def select(self, ctx, *args):
         """Selects a deck. =select <deck #/name>"""
         given = ' '.join(args)
         try:  # if user gives index of deck
@@ -26,7 +25,7 @@ class Deckbuilding(commands.Cog):
             file_contents['selectedDeck'] = index - 1
             with open('player_data/' + str(ctx.message.author.id) + '.txt', 'w') as outfile:
                 json.dump(file_contents, outfile)
-            yield from ctx.message.channel.send("Selected deck #" + str(index) + ".")
+            await ctx.message.channel.send("Selected deck #" + str(index) + ".")
 
         except:  # if user gives the name of the deck
             deckname = ' '.join(args)
@@ -40,21 +39,20 @@ class Deckbuilding(commands.Cog):
                     index = file_contents['decknames'].index(decks)
                     break
             if index == None:
-                yield from ctx.message.channel.send("Could not find a deck by that name.")
+                await ctx.message.channel.send("Could not find a deck by that name.")
                 return
             else:
                 print(str(index))
                 file_contents['selectedDeck'] = index
                 with open('player_data/' + str(ctx.message.author.id) + '.txt', 'w') as outfile:
                     json.dump(file_contents, outfile)
-                yield from ctx.message.channel.send("Selected " + deckname + ".")
+                await ctx.message.channel.send("Selected " + deckname + ".")
 
     # See your decklists
     @commands.command(pass_context=True)
-    @asyncio.coroutine
-    def decks(self, ctx, *args):
+    async def decks(self, ctx, *args):
         """Lists all your decks."""
-        if not (yield from is_invoker_registered(ctx)):
+        if not (await is_invoker_registered(ctx)):
             return
 
         with open('player_data/' + str(ctx.message.author.id) + '.txt', 'r') as json_file:
@@ -70,17 +68,16 @@ class Deckbuilding(commands.Cog):
                 string_to_print = "**" + string_to_print + "**"
             string_to_print += "\n"
 
-        yield from ctx.message.channel.send(string_to_print)
+        await ctx.message.channel.send(string_to_print)
 
     # Rename a deck
     @commands.command(pass_context=True)
-    @asyncio.coroutine
-    def rename(self, ctx, *args):
+    async def rename(self, ctx, *args):
         """Renames a deck. =rename <deck #> <new name>"""
         try:
             index = int(args[0])
         except:
-            yield from ctx.message.channel.send("Invalid syntax. =rename <deck #> <new name>")
+            await ctx.message.channel.send("Invalid syntax. =rename <deck #> <new name>")
             return
 
         with open('player_data/' + str(ctx.message.author.id) + '.txt', 'r') as json_file:
@@ -89,14 +86,13 @@ class Deckbuilding(commands.Cog):
         with open('player_data/' + str(ctx.message.author.id) + '.txt', 'w') as outfile:
             json.dump(fileContents, outfile)
 
-        yield from ctx.message.channel.send("Renamed deck " + str(index) + ".")
+        await ctx.message.channel.send("Renamed deck " + str(index) + ".")
 
     # Get your decklist
     @commands.command(pass_context=True)
-    @asyncio.coroutine
-    def deck(self, ctx, *args):
+    async def deck(self, ctx, *args):
         """Gets your decklist. Use this to save and modify lists. Try doing this in DMs."""
-        if not (yield from is_invoker_registered(ctx)):
+        if not (await is_invoker_registered(ctx)):
             return
 
         stringToPrint = ""
@@ -111,19 +107,18 @@ class Deckbuilding(commands.Cog):
             i += 1
             if i >= 10:
                 i = 0
-                yield from ctx.message.channel.send(stringToPrint)
+                await ctx.message.channel.send(stringToPrint)
                 stringToPrint = ""
         if not stringToPrint == "":
-            yield from ctx.message.channel.send(stringToPrint)
-        yield from ctx.message.channel.send(str(len(selectedDeck)) + " cards in deck.")
+            await ctx.message.channel.send(stringToPrint)
+        await ctx.message.channel.send(str(len(selectedDeck)) + " cards in deck.")
 
     # Get your collection
     @commands.command(pass_context=True)
-    @asyncio.coroutine
-    def collection(self, ctx, *args):
+    async def collection(self, ctx, *args):
         """Gets your collection. Try doing this in DMs."""
 
-        if not (yield from is_invoker_registered(ctx)):
+        if not (await is_invoker_registered(ctx)):
             return
 
         stringToPrint = ""
@@ -134,18 +129,17 @@ class Deckbuilding(commands.Cog):
             i += 1
             if i >= 10:
                 i = 0
-                yield from ctx.message.author.send(stringToPrint)
+                await ctx.message.author.send(stringToPrint)
                 stringToPrint = ""
         if not stringToPrint == "":
-            yield from ctx.message.author.send(stringToPrint)
+            await ctx.message.author.send(stringToPrint)
 
     # Clears your deck
     @commands.command(pass_context=True)
-    @asyncio.coroutine
-    def clear(self, ctx, *args):
+    async def clear(self, ctx, *args):
         """Removes all cards from your current deck."""
 
-        if not (yield from is_invoker_registered(ctx)):
+        if not (await is_invoker_registered(ctx)):
             return
 
         playerData = getPlyData(ctx.message.author)
@@ -159,15 +153,14 @@ class Deckbuilding(commands.Cog):
         with open('player_data/' + str(ctx.message.author.id) + '.txt', 'w') as outfile:
             json.dump(fileContents, outfile)
 
-        yield from ctx.message.channel.send("Successfully cleared your current decklist.")
+        await ctx.message.channel.send("Successfully cleared your current decklist.")
 
     # Remove an amount of a card from your deck
     @commands.command(pass_context=True)
-    @asyncio.coroutine
-    def remove(self, ctx, *args):
+    async def remove(self, ctx, *args):
         """<amt> <card> to remove cards from your deck."""
 
-        if not (yield from is_invoker_registered(ctx)):
+        if not (await is_invoker_registered(ctx)):
             return
 
         # Syntax
@@ -175,7 +168,7 @@ class Deckbuilding(commands.Cog):
             card = ' '.join(args[1:])
             amt = int(args[0])
         except:
-            yield from ctx.message.channel.send("Incorrect syntax. =remove <amount> <cardname>")
+            await ctx.message.channel.send("Incorrect syntax. =remove <amount> <cardname>")
             return
 
         playerData = getPlyData(ctx.message.author)
@@ -190,10 +183,10 @@ class Deckbuilding(commands.Cog):
                 cardPair = item
 
         if cardPair == None:
-            yield from ctx.message.channel.send("This card isn't in your deck.")
+            await ctx.message.channel.send("This card isn't in your deck.")
             return
         if cardPair[1] < amt:
-            yield from ctx.message.channel.send("You don't have that many of that card in your deck.")
+            await ctx.message.channel.send("You don't have that many of that card in your deck.")
             return
 
         # Remove the card
@@ -207,23 +200,22 @@ class Deckbuilding(commands.Cog):
         with open('player_data/' + str(ctx.message.author.id) + '.txt', 'w') as outfile:
             json.dump(fileContents, outfile)
 
-        yield from ctx.message.channel.send("Successfully removed card(s) from your current deck.")
+        await ctx.message.channel.send("Successfully removed card(s) from your current deck.")
 
     # Bulk add cards to your deck
     @commands.command(pass_context=True)
-    @asyncio.coroutine
-    def bulkadd(self, ctx, *args):
+    async def bulkadd(self, ctx, *args):
         """Add many cards to your deck at once."""
 
-        if not (yield from is_invoker_registered(ctx)):
+        if not (await is_invoker_registered(ctx)):
             return
 
         # user interaction
-        yield from ctx.message.channel.send(
+        await ctx.message.channel.send(
             "On each line, write <number>x <cardname>. For example:\n2x Caltrops\n1x Ambush")
 
         try:
-            message = yield from self.bot.wait_for('message', check=lambda message: message.author == ctx.message.author,
+            message = await self.bot.wait_for('message', check=lambda message: message.author == ctx.message.author,
                                                timeout=400)
         except asyncio.exceptions.TimeoutError:
             ctx.message.channel.send("Timed out waiting for response. Cancelling bulk add.")
@@ -247,19 +239,19 @@ class Deckbuilding(commands.Cog):
                     if cardEntry[1].lower() == item[0].lower():
                         cardPair = item
             except:
-                yield from ctx.message.channel.send("Invalid format!")
+                await ctx.message.channel.send("Invalid format!")
                 return
 
             # checks
             if cardPair == None:
-                yield from ctx.message.channel.send(cardEntry[1] + " isn't in your collection. Exiting bulkadd.")
+                await ctx.message.channel.send(cardEntry[1] + " isn't in your collection. Exiting bulkadd.")
                 return
             if cardPair[1] < int(cardEntry[0]):
-                yield from ctx.message.channel.send(
+                await ctx.message.channel.send(
                     "You don't have that many " + cardEntry[1] + " in your collection. Exiting bulkadd.")
                 return
             if Counter(deckList)[cardPair[0]] + int(cardEntry[0]) > 3:
-                yield from ctx.message.channel.send(
+                await ctx.message.channel.send(
                     "You can only have 3 of a card in your deck. (" + cardPair[0] + ") Exiting bulkadd.")
                 return
 
@@ -274,14 +266,13 @@ class Deckbuilding(commands.Cog):
         with open('player_data/' + str(ctx.message.author.id) + '.txt', 'w') as outfile:
             json.dump(fileContents, outfile)
 
-        yield from ctx.message.channel.send("Successfully added card(s) to your current deck.")
+        await ctx.message.channel.send("Successfully added card(s) to your current deck.")
 
     # Add an amount of a card to your deck
     @commands.command(pass_context=True)
-    @asyncio.coroutine
-    def add(self, ctx, *args):
+    async def add(self, ctx, *args):
         """<amt> <card> to add cards to your deck."""
-        if not (yield from is_invoker_registered(ctx)):
+        if not (await is_invoker_registered(ctx)):
             return
 
         # Syntax
@@ -289,7 +280,7 @@ class Deckbuilding(commands.Cog):
             card = ' '.join(args[1:])
             amt = int(args[0])
         except:
-            yield from ctx.message.channel.send("Incorrect syntax. =add <amount> <card name>")
+            await ctx.message.channel.send("Incorrect syntax. =add <amount> <card name>")
             return
 
         collection = getPlyData(ctx.message.author)['collection']
@@ -305,13 +296,13 @@ class Deckbuilding(commands.Cog):
 
         testers = ['135526460881502209', '128216983605870603', ]
         if cardPair == None and ctx.message.author.id not in testers:
-            yield from ctx.message.channel.send("This card isn't in your collection.")
+            await ctx.message.channel.send("This card isn't in your collection.")
             return
         if cardPair[1] < amt and ctx.message.author.id not in testers:
-            yield from ctx.message.channel.send("You don't have that many of that card in your collection.")
+            await ctx.message.channel.send("You don't have that many of that card in your collection.")
             return
         if Counter(deckList)[cardPair[0]] + amt > 3:
-            yield from ctx.message.channel.send("You can only have 3 of a card in your deck.")
+            await ctx.message.channel.send("You can only have 3 of a card in your deck.")
             return
 
         # Add the card
@@ -325,7 +316,7 @@ class Deckbuilding(commands.Cog):
         with open('player_data/' + str(ctx.message.author.id) + '.txt', 'w') as outfile:
             json.dump(fileContents, outfile)
 
-        yield from ctx.message.channel.send("Successfully added card(s) to your current deck.")
+        await ctx.message.channel.send("Successfully added card(s) to your current deck.")
 
 
 def setup(bot):

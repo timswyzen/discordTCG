@@ -12,8 +12,8 @@ TARGETS = None
 TYPE = "NodeGen"
 
 #What happens when you play it
-def playFunc(ply, enemy, target):
-	yield from ply.addNode( 'Nostalgia' )
+async def playFunc(ply, enemy, target):
+	await ply.addNode( 'Nostalgia' )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

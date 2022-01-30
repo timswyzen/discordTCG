@@ -10,21 +10,21 @@ ENERGY = -1
 TRIGGER = "NODESPAWN"
 
 #What happens when you play it (at the start of your turn)
-def playFunc(ply,enemy):
+async def playFunc(ply,enemy):
 	return
 	
 #Abilities that only happens when the Node is spawned
-def oneTimeFunc(ply,enemy):
+async def oneTimeFunc(ply,enemy):
 	return
 	
 #What happens when it's sacrificed/killed
-def deathFunc(ply,enemy):
+async def deathFunc(ply,enemy):
 	return
 	
 #What happens when the TRIGGER is triggered
-def triggerFunc(ply,enemy,data,affectedPlayer):
+async def triggerFunc(ply,enemy,data,affectedPlayer):
 	if affectedPlayer == "enemy":
-		yield from mechanics.damage( enemy, 3 )
+		await mechanics.damage( enemy, 3 )
 	else:
 		return False
 	

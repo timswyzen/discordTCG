@@ -12,11 +12,11 @@ TARGETS = "ENEMY_NODE"
 TYPE = "NodeInteraction"
 
 #What happens when you play it
-def playFunc(ply, enemy, target):
+async def playFunc(ply, enemy, target):
 	if len(enemy.nodes) > 0:
 		target = random.randint( 0, len(enemy.nodes)-1 )
 		nodeType = mechanics.nodeList[enemy.nodes[target].lower()]
-		yield from ply.addNode( enemy.nodes[target] )
+		await ply.addNode( enemy.nodes[target] )
 		enemy.energy -= nodeType.energy
 		enemy.nodes.pop( target )
 	

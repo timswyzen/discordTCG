@@ -10,19 +10,19 @@ ENERGY = -2
 TRIGGER = None
 
 #What happens when you play it
-def playFunc(ply,enemy):
-	yield from mechanics.heal( ply, len(ply.nodes) )
+async def playFunc(ply,enemy):
+	await mechanics.heal( ply, len(ply.nodes) )
 	return
 	
-def oneTimeFunc(ply,enemy):
+async def oneTimeFunc(ply,enemy):
 	return
 	
 #What happens when it's sacrificed/killed
-def deathFunc(ply,enemy):
+async def deathFunc(ply,enemy):
 	return
 	
 #What happens when the TRIGGER is triggered
-def triggerFunc(ply,enemy):
+async def triggerFunc(ply,enemy):
 	return
 	
 addNode( NAME, DESC, playFunc, oneTimeFunc, ENERGY, deathFunc, TRIGGER, triggerFunc )

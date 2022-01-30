@@ -12,11 +12,11 @@ TARGETS = None
 TYPE = "NodeGen"
 
 #What happens when you play it
-def playFunc(ply, enemy, target):
+async def playFunc(ply, enemy, target):
 	if ply.nodes.count( 'Swarmer' ) >= 2:
-		yield from mechanics.sacNode( ply, enemy, ply.nodes.index( 'Swarmer' ) )
-		yield from mechanics.sacNode( ply, enemy, ply.nodes.index( 'Swarmer' ) )
-		yield from ply.addNode( 'Swarm Queen' )
+		await mechanics.sacNode( ply, enemy, ply.nodes.index( 'Swarmer' ) )
+		await mechanics.sacNode( ply, enemy, ply.nodes.index( 'Swarmer' ) )
+		await ply.addNode( 'Swarm Queen' )
 	
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )

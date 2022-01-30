@@ -12,10 +12,10 @@ TARGETS = None
 TYPE = "PlyInteraction"
 
 #What happens when you play it
-def playFunc(ply, enemy, target):
+async def playFunc(ply, enemy, target):
 	lifeLost = math.ceil( ply.lifeforce / 2 )
-	yield from mechanics.damage( ply, lifeLost )
-	yield from enemy.burn( lifeLost )
+	await mechanics.damage( ply, lifeLost )
+	await enemy.burn( lifeLost )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

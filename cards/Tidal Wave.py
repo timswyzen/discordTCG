@@ -12,9 +12,9 @@ TARGETS = None
 TYPE = "NodeInteraction"
 
 #What happens when you play it
-def playFunc(ply, enemy, target):
+async def playFunc(ply, enemy, target):
 	for _ in range( len(enemy.nodes) ):
-		yield from mechanics.sacNode( enemy, ply, 0 )
+		await mechanics.sacNode( enemy, ply, 0 )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

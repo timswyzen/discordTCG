@@ -12,8 +12,8 @@ TARGETS = None
 TYPE = "PlyInteraction"
 
 #What happens when you play it
-def playFunc(ply, enemy, target):
-	yield from enemy.burn( len(ply.nodes) )
+async def playFunc(ply, enemy, target):
+	await enemy.burn( len(ply.nodes) )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

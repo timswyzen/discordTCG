@@ -12,7 +12,7 @@ TARGETS = None
 TYPE = "Debuff"
 
 #What happens when you play it
-def playFunc(ply, enemy, target):
+async def playFunc(ply, enemy, target):
 	enemy.hunger -= 5
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )

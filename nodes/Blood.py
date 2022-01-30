@@ -11,25 +11,25 @@ TRIGGER = "DAMAGE"
 
 
 # What happens when you play it (at the start of your turn)
-def playFunc(ply, enemy):
+async def playFunc(ply, enemy):
     return
 
 
 # Abilities that only happens when the Node is spawned
-def oneTimeFunc(ply, enemy):
+async def oneTimeFunc(ply, enemy):
     return
 
 
 # What happens when it's sacrificed/killed
-def deathFunc(ply, enemy):
+async def deathFunc(ply, enemy):
     return
 
 
 # What happens when the TRIGGER is triggered
-def triggerFunc(ply, enemy, dataPassed, affectedPlayer):
+async def triggerFunc(ply, enemy, dataPassed, affectedPlayer):
     # dataPassed is damage dealt
     if affectedPlayer == "enemy":
-        yield from mechanics.heal(ply, dataPassed)
+        await mechanics.heal(ply, dataPassed)
     else:
         return False
 

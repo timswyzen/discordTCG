@@ -12,11 +12,11 @@ TARGETS = None
 TYPE = "PlyInteraction"
 
 #What happens when you play it
-def playFunc(ply, enemy, target):
+async def playFunc(ply, enemy, target):
 	if enemy.milled == True:
-		yield from enemy.burn(5)
+		await enemy.burn(5)
 	else:
-		yield from enemy.burn(2)
+		await enemy.burn(2)
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

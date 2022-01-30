@@ -12,10 +12,10 @@ TARGETS = None
 TYPE = "NodeGen"
 
 #What happens when you play it
-def playFunc(ply, enemy, target):
+async def playFunc(ply, enemy, target):
 	for _ in range( 5 ):
-		yield from ply.drawCard()
-	yield from ply.addNode( 'Foundation' )
+		await ply.drawCard()
+	await ply.addNode( 'Foundation' )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

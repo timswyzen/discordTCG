@@ -11,17 +11,17 @@ TRIGGER = "PLAYED_CARD"
 
 
 # What happens when you play it (at the start of your turn)
-def playFunc(ply, enemy):
+async def playFunc(ply, enemy):
     return
 
 
 # Abilities that only happens when the Node is spawned
-def oneTimeFunc(ply, enemy):
+async def oneTimeFunc(ply, enemy):
     return
 
 
 # What happens when it's sacrificed/killed
-def deathFunc(ply, enemy):
+async def deathFunc(ply, enemy):
     return
 
 
@@ -32,7 +32,7 @@ data is whatever data is relevant to the trigger, e.g discarded card name
 Possible triggers: "HEAL", "DAMAGE", "BURN", "MILL", "SAC", "NODESPAWN", "PLAYED_CARD". """
 
 
-def triggerFunc(ply, enemy, data, affectedPlayer):
+async def triggerFunc(ply, enemy, data, affectedPlayer):
     if affectedPlayer == "friendly" and not mechanics.cardList[data.lower()].cardtype == "NodeGen":
         ply.playedNode = False  # don't need to check for nodegen cause it'll just overwrite this anyway... better than redoing data arg
     else:
