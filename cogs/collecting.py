@@ -113,7 +113,7 @@ class Collecting(commands.Cog):
         try:
             message = yield from self.bot.wait_for('message', check=lambda message: message.author == ctx.message.author,
                                                timeout=90)
-        except TimeoutError:
+        except asyncio.exceptions.TimeoutError:
             ctx.message.channel.send("Timed out waiting for response. Cancelling trade.")
             return
 
@@ -163,7 +163,7 @@ class Collecting(commands.Cog):
         try:
             message = yield from self.bot.wait_for('message', check=lambda message: message.author == ctx.message.author,
                                                timeout=90)
-        except TimeoutError:
+        except asyncio.exceptions.TimeoutError:
             ctx.message.channel.send("Timed out waiting for response. Cancelling trade.")
             return
 
@@ -223,7 +223,7 @@ class Collecting(commands.Cog):
         yield from ctx.message.channel.send(target.name + ": Do you accept the above trade? ('yes' or 'no')")
         try:
             message = yield from self.bot.wait_for('message', check=check(ctx.message.author), timeout=30)
-        except TimeoutError:
+        except asyncio.exceptions.TimeoutError:
             ctx.message.channel.send("Timed out waiting for response. Cancelling trade.")
             return
 

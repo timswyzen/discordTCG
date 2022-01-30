@@ -216,7 +216,7 @@ def startRound(match, activePlayer, activePlayerObj, otherPlayer, otherPlayerObj
         try:
             messageOriginal = yield from bot.wait_for('message', check=check_command, timeout=config.TURN_TIMEOUT)
             message = messageOriginal.content.lower().split(' ', 1)
-        except TimeoutError:
+        except asyncio.exceptions.TimeoutError:
             yield from ctx.message.channel.send("Game timed out!")
             match.timedOut = True
             yield from mechanics.gameOver(activePlayer.id)
@@ -305,7 +305,7 @@ def challenge(ctx, target: discord.Member = None, *args):
 
     try:
         yield from bot.wait_for('message', check=check, timeout=config.CHALLENGE_TIMEOUT)
-    except TimeoutError:
+    except asyncio.exceptions.TimeoutError:
         yield from ctx.message.channel.send(ctx.message.author.name + ", your challenge was not accepted :(")
         return
 
