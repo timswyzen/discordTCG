@@ -22,6 +22,7 @@ If you have suggestions for cards or mechanics, feel free to open an Issue!
 - Integrations with other bots
 - Analytics
 - Automatic testing
+- Fuzzy matching for search + card selection
 
 ## Refactoring todo 
 - Rework trade monolith function?
