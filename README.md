@@ -13,7 +13,8 @@ If you have suggestions for cards or mechanics, feel free to open an Issue!
 1. Fork/download this
 2. Run pip install discord.py
 3. In config.py, add your private bot key that the Discord Developer section should grant
-4. Run matchFunctions.py
+4. If you're not using them, delete `cards/New Card.py` and `nodes/New Node.py`. Keeping them in will break things - they're just there for reference.
+5. Run matchFunctions.py
 
 ## Potential features
 - Multiple triggers per Node
