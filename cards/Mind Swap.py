@@ -13,7 +13,7 @@ TYPE = "PlyInteraction"
 
 
 # What happens when you play it
-def playFunc(ply, enemy, target):
+async def playFunc(ply, enemy, target):
     ply.mindSwap = True  # for the playerbase thing TODO: find a better way lol
     ply.desperation, enemy.desperation = enemy.desperation, ply.desperation
     ply.hunger, enemy.hunger = enemy.hunger, ply.hunger

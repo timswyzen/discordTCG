@@ -12,7 +12,7 @@ TARGETS = None
 TYPE = "NodeInteraction"
 
 #What happens when you play it
-def playFunc(ply, enemy, target):
+async def playFunc(ply, enemy, target):
 	for i in range( len(ply.nodes) ):
 		ply.nodes[i] = 'Generator'
 	

@@ -12,8 +12,8 @@ TARGETS = None
 TYPE = "NodeInteraction"
 
 #What happens when you play it
-def playFunc(ply, enemy, target):
-	yield from mechanics.damage( enemy, 2*len(enemy.nodes) )
+async def playFunc(ply, enemy, target):
+	await mechanics.damage( enemy, 2*len(enemy.nodes) )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

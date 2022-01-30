@@ -30,8 +30,7 @@ class InfoCommands(commands.Cog):
 
     # Search card via description
     @commands.command(pass_context=True)
-    @asyncio.coroutine
-    def search(self, ctx, *args):
+    async def search(self, ctx, *args):
         """Search for a card via its description."""
         queryList = args
         stringToSay = ""
@@ -47,15 +46,14 @@ class InfoCommands(commands.Cog):
                 i += 1
                 if i >= 10:
                     i = 0
-                    yield from ctx.message.channel.send(stringToSay)
+                    await ctx.message.channel.send(stringToSay)
                     stringToSay = ""
         if not stringToSay == "":
-            yield from ctx.message.channel.send(stringToSay)
+            await ctx.message.channel.send(stringToSay)
 
     # Search Node via description
     @commands.command(pass_context=True)
-    @asyncio.coroutine
-    def nodesearch(self, ctx, *args):
+    async def nodesearch(self, ctx, *args):
         """Search for a Node via its description."""
         queryList = args
         stringToSay = ""
@@ -71,28 +69,26 @@ class InfoCommands(commands.Cog):
                 i += 1
                 if i >= 10:
                     i = 0
-                    yield from ctx.message.channel.send(stringToSay)
+                    await ctx.message.channel.send(stringToSay)
                     stringToSay = ""
         if not stringToSay == "":
-            yield from ctx.message.channel.send(stringToSay)
+            await ctx.message.channel.send(stringToSay)
 
     # Get Node information
     @commands.command(pass_context=True)
-    @asyncio.coroutine
-    def node(self, ctx, *args):
+    async def node(self, ctx, *args):
         """Query the bot for information on a Node."""
         try:
             query = ' '.join(args).lower()
             if query.lower() in nodeList:
-                yield from ctx.message.channel.send(str(nodeList[query.lower()]))
+                await ctx.message.channel.send(str(nodeList[query.lower()]))
             else:
-                yield from ctx.message.channel.send("Node not found.")
+                await ctx.message.channel.send("Node not found.")
         except Exception as e:
             print(e)
 
     @commands.command(pass_context=True)
-    @asyncio.coroutine
-    def library(self, ctx, *args):
+    async def library(self, ctx, *args):
         """See how many cards there are in the game."""
         commons, uncommons, rares = [], [], []
         for card in cardList:
@@ -102,83 +98,77 @@ class InfoCommands(commands.Cog):
                 uncommons.append(cardList[card].name)
             elif cardList[card].rarity == 'R':
                 rares.append(cardList[card].name)
-        yield from ctx.message.channel.send(
+        await ctx.message.channel.send(
             str(len(commons)) + " Commons, " + str(len(uncommons)) + " Uncommons, and " + str(
                 len(rares)) + " Rare cards exist.\nThere are " + str(
                 len(commons) + len(uncommons) + len(rares)) + " cards in total, not counting Special cards.")
 
     # Get card information
     @commands.command(pass_context=True)
-    @asyncio.coroutine
-    def card(self, ctx, *args):
+    async def card(self, ctx, *args):
         """Query the bot for information on a card."""
         try:
             query = ' '.join(args).lower()
             if query in cardList:
-                yield from ctx.message.channel.send(str(cardList[query.lower()]))
+                await ctx.message.channel.send(str(cardList[query.lower()]))
             else:
-                yield from ctx.message.channel.send("Card not found.")
+                await ctx.message.channel.send("Card not found.")
         except Exception as e:
             print(e)
 
     # Get game definition
     @commands.command(pass_context=True)
-    @asyncio.coroutine
-    def define(self, ctx, *args):
+    async def define(self, ctx, *args):
         """Query the bot for the definition of a game term."""
         try:
             query = ' '.join(args)
             if query in config.DEFINITIONS.keys():
-                yield from ctx.message.channel.send(config.DEFINITIONS[query.lower()])
+                await ctx.message.channel.send(config.DEFINITIONS[query.lower()])
             else:
-                yield from ctx.message.channel.send("Term not found.")
+                await ctx.message.channel.send("Term not found.")
         except Exception as e:
             print(e)
 
     # Show off a card
     @commands.command(pass_context=True)
-    @asyncio.coroutine
-    def showoff(self, ctx, *args):
+    async def showoff(self, ctx, *args):
         """Show off a card. And don't try to lie!"""
 
-        if not (yield from is_invoker_registered(ctx)):
+        if not (await is_invoker_registered(ctx)):
             return
 
         try:
             card = ' '.join(args)
             cardLower = card.lower()
         except:
-            yield from ctx.message.channel.send("Incorrect syntax. =showoff <cardname>")
+            await ctx.message.channel.send("Incorrect syntax. =showoff <cardname>")
 
         if cardLower in [x.lower() for x in getPlyData(ctx.message.author)['collection'].keys()]:
-            yield from ctx.message.channel.send(ctx.message.author.name + " has a shiny " + card + "!")
+            await ctx.message.channel.send(ctx.message.author.name + " has a shiny " + card + "!")
         else:
-            yield from ctx.message.channel.send(
+            await ctx.message.channel.send(
                 ctx.message.author.name + " doesn't even have a " + card + ". What a loser!")
 
     # Credits
     @commands.command(pass_context=True)
-    @asyncio.coroutine
-    def credits(self, ctx, *args):
+    async def credits(self, ctx, *args):
         """See who worked in this kick-butt project!"""
-        yield from ctx.message.channel.send(
+        await ctx.message.channel.send(
             "[-------------=Credits=-------------]\n---[--------Version " + config.VERSION + "--------]---\n**Developer/Creator**: Tim Swyzen\n**Game Design**: John Kay, Tim Swyzen")
 
     # Tutorial
     @commands.command(pass_context=True)
-    @asyncio.coroutine
-    def tutorial(self, ctx, *args):
+    async def tutorial(self, ctx, *args):
         """Get a link to the beginner's guide."""
-        yield from ctx.message.channel.send("Beginner's Guide: https://pastebin.com/Y70FZ49Q")
+        await ctx.message.channel.send("Beginner's Guide: https://pastebin.com/Y70FZ49Q")
 
     # Get an 'account'
     @commands.command(pass_context=True)
-    @asyncio.coroutine
-    def register(self, ctx):
+    async def register(self, ctx):
         """Get an account before you can start playing"""
         playerID = ctx.message.author.id
         if os.path.isfile('player_data/' + str(playerID) + '.txt'):
-            yield from ctx.message.channel.send("You're already registered.")
+            await ctx.message.channel.send("You're already registered.")
             return
         playerData = {
             "collection": {
@@ -223,7 +213,7 @@ class InfoCommands(commands.Cog):
         with open('player_data/' + str(playerID) + '.txt', 'w') as outfile:
             json.dump(playerData, outfile)
 
-        yield from ctx.message.channel.send("Registration successful!")
+        await ctx.message.channel.send("Registration successful!")
 
 
 def setup(bot):

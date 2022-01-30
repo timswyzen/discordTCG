@@ -12,10 +12,10 @@ TARGETS = None
 TYPE = "PlyInteraction"
 
 #What happens when you play it
-def playFunc(ply, enemy, target):
+async def playFunc(ply, enemy, target):
 	ply.hunger += 1
 	ply.desperation += 1
-	yield from ply.drawCard()
+	await ply.drawCard()
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

@@ -12,10 +12,10 @@ TARGETS = None
 TYPE = "NodeGen"
 
 #What happens when you play it
-def playFunc(ply, enemy, target):
+async def playFunc(ply, enemy, target):
 	if 'Swarmer' in ply.nodes:
-		yield from ply.addNode( 'Swarmer' )
-		yield from ply.addNode( 'Swarmer' )
+		await ply.addNode( 'Swarmer' )
+		await ply.addNode( 'Swarmer' )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

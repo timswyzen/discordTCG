@@ -12,7 +12,7 @@ TARGETS = None
 TYPE = "NodeGen"
 
 #What happens when you play it
-def playFunc(ply, enemy, target):
+async def playFunc(ply, enemy, target):
 	if 'Drugged' in ply.nodes:
 		enemy.addNode( 'Drugged' )
 	

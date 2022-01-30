@@ -12,7 +12,7 @@ TARGETS = None
 TYPE = "DeckInteraction"
 
 #What happens when you play it
-def playFunc(ply, enemy, target):
+async def playFunc(ply, enemy, target):
 	for _ in range( 5 ):
 		ply.deck.append( 'Slap' )
 	ply.shuffle()

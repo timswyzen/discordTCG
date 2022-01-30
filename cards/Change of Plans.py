@@ -12,10 +12,10 @@ TARGETS = "FRIENDLY_NODE"
 TYPE = "NodeGen"
 
 #What happens when you play it
-def playFunc(ply, enemy, target):
-	yield from mechanics.sacNode( ply, enemy, target )
-	yield from ply.addNode( 'Generator' )
-	yield from ply.addNode( 'Generator' )
+async def playFunc(ply, enemy, target):
+	await mechanics.sacNode( ply, enemy, target )
+	await ply.addNode( 'Generator' )
+	await ply.addNode( 'Generator' )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

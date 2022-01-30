@@ -12,7 +12,7 @@ TARGETS = None
 TYPE = "PlyInteraction"
 
 #What happens when you play it
-def playFunc(ply, enemy, target):
+async def playFunc(ply, enemy, target):
 	handSame = True
 	for plyCards in ply.hand:
 		if plyCards not in enemy.hand:

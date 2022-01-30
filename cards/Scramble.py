@@ -12,8 +12,8 @@ TARGETS = None
 TYPE = "PlyInteraction"
 
 #What happens when you play it
-def playFunc(ply, enemy, target):
-	yield from enemy.randomDiscard()
+async def playFunc(ply, enemy, target):
+	await enemy.randomDiscard()
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

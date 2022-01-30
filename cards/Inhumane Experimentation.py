@@ -12,9 +12,9 @@ TARGETS = "FRIENDLY_NODE"
 TYPE = "NodeInteraction"
 
 #What happens when you play it
-def playFunc(ply, enemy, target):
+async def playFunc(ply, enemy, target):
 	nodeObj = mechanics.nodeList[ ply.nodes[target].lower() ]
-	nodeObj.deathFunc( ply, enemy )
+	await nodeObj.deathFunc( ply, enemy )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

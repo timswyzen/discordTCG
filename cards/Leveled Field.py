@@ -12,7 +12,7 @@ TARGETS = None
 TYPE = "PlyInteraction"
 
 #What happens when you play it
-def playFunc(ply, enemy, target):
+async def playFunc(ply, enemy, target):
 	ply.lifeforce = 35
 	enemy.lifeforce = 35
 	

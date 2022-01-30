@@ -10,22 +10,22 @@ ENERGY = 4
 TRIGGER = None
 
 #What happens when you play it (at the start of your turn)
-def playFunc(ply,enemy):
+async def playFunc(ply,enemy):
 	return
 	
 #Abilities that only happens when the Node is spawned
-def oneTimeFunc(ply,enemy):
-	yield from ply.drawCard()
+async def oneTimeFunc(ply,enemy):
+	await ply.drawCard()
 	return
 	
 #What happens when it's sacrificed/killed
-def deathFunc(ply,enemy):
+async def deathFunc(ply,enemy):
 	ply.energy -= 2
-	yield from ply.randomDiscard()
+	await ply.randomDiscard()
 	return
 	
 #What happens when the TRIGGER is triggered
-def triggerFunc(ply,enemy):
+async def triggerFunc(ply,enemy):
 	return
 	
 addNode( NAME, DESC, playFunc, oneTimeFunc, ENERGY, deathFunc, TRIGGER, triggerFunc )

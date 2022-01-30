@@ -12,8 +12,8 @@ TARGETS = None
 TYPE = "NodeInteraction"
 
 #What happens when you play it
-def playFunc(ply, enemy, target):
-	yield from mechanics.heal( ply, 18 )
+async def playFunc(ply, enemy, target):
+	await mechanics.heal( ply, 18 )
 	enemy.addNode( 'Lesser Leech' )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )

@@ -12,8 +12,8 @@ TARGETS = "FRIENDLY_NODE"
 TYPE = "NodeInteraction"
 
 #What happens when you play it
-def playFunc(ply, enemy, target):
-	yield from mechanics.sacNode( ply, enemy, target )
+async def playFunc(ply, enemy, target):
+	await mechanics.sacNode( ply, enemy, target )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

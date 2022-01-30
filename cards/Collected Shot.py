@@ -12,9 +12,9 @@ TARGETS = None
 TYPE = "PlyInteraction"
 
 #What happens when you play it
-def playFunc(ply, enemy, target):
+async def playFunc(ply, enemy, target):
 	if len(ply.nodes) >= 4:
-		yield from mechanics.damage( enemy, 10 )
+		await mechanics.damage( enemy, 10 )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

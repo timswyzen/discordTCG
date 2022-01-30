@@ -12,7 +12,7 @@ TARGETS = "PLAYER"
 TYPE = "PlyInteraction"
 
 #What happens when you play it
-def playFunc(ply, enemy, target):
+async def playFunc(ply, enemy, target):
 	if target == 1:
 		ply.desperation, ply.hunger = ply.hunger, ply.desperation
 	elif target == 2:

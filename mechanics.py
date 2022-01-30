@@ -33,47 +33,46 @@ def theHandout():
     print("Gave each player $100.")
 
 
-@asyncio.coroutine
-def mechMessage(ctx, msg):
+async def mechMessage(ctx, msg):
     """Handles messaging outside of bot files. (necessary?)
     ctx should be a channel."""
-    yield from ctx.send(msg)
+    await ctx.send(msg)
 
 
 # Handles a Node entering the field
-def nodeETB(ply, nodeName):
+async def nodeETB(ply, nodeName):
     nodeObj = nodeList[nodeName.lower()]
-    nodeObj.spawnFunc(ply, ply.opponent)
+    await nodeObj.spawnFunc(ply, ply.opponent)
     ply.energy = ply.energy + nodeObj.energy
 
 
 # Player sacrificed a node as part of an ability (for health)
-def sacNode(ply, enemy, index):  # Returns the node OBJECT, not the name.
+async def sacNode(ply, enemy, index):  # Returns the node OBJECT, not the name.
     removedNode = nodeList[ply.nodes[index].lower()]
-    removedNode.deathFunc(ply, enemy)  # gets rid of temp effects n stuff
+    await removedNode.deathFunc(ply, enemy)  # gets rid of temp effects n stuff
     ply.nodes.remove(ply.nodes[index])
     healthToGain = abs(round(0.1 * ply.hunger * removedNode.energy))
     if 'Feast' not in ply.nodes and 'Feast' not in enemy.nodes:  # card...specific......
         ply.lifeforce += healthToGain
     ply.energy -= removedNode.energy
-    yield from add_to_trigger_queue("SAC", ply, removedNode)
+    await add_to_trigger_queue("SAC", ply, removedNode)
     return removedNode
 
 
 # Player milled a card for health
-def millCard(ply):
+async def millCard(ply):
     poppedCard = ply.deck.pop()
     cost = cardList[poppedCard.lower()].cost
     lifeToGain = abs(round(0.1 * ply.desperation * cost))
     ply.lifeforce += lifeToGain
-    yield from add_to_trigger_queue("MILL", ply, None)
+    await add_to_trigger_queue("MILL", ply, None)
     return poppedCard, lifeToGain
 
 
 # Player activated a node
-def activateNode(nodeName, activePlayerObj, opponentObj):
+async def activateNode(nodeName, activePlayerObj, opponentObj):
     playedObject = nodeList[nodeName.lower()]
-    yield from playedObject.func(activePlayerObj, opponentObj) or []
+    await playedObject.func(activePlayerObj, opponentObj) or []
 
 
 # Get player object from a discord ID string
@@ -109,15 +108,14 @@ def isGameRunning(match):
 
 
 # Game ended. Takes the loser's discord ID
-@asyncio.coroutine
-def gameOver(loserID):  # get ONLY discord ID of LOSER
+async def gameOver(loserID):  # get ONLY discord ID of LOSER
     loserObj = discordUserToPlayerObj(loserID)
     winnerID = playerObjToDiscordID(loserObj.opponent)
     bot = loserObj.bot
     ctx = loserObj.ctx
 
-    loser = yield from ctx.message.guild.fetch_member(loserID)
-    winner = yield from ctx.message.guild.fetch_member(winnerID)
+    loser = await ctx.message.guild.fetch_member(loserID)
+    winner = await ctx.message.guild.fetch_member(winnerID)
 
     if winner.id in config.matches:
         matchWager = config.matches[winner.id].wager
@@ -129,7 +127,7 @@ def gameOver(loserID):  # get ONLY discord ID of LOSER
         matchTime = config.matches[loser.id].startTime
         timedOut = config.matches[loser.id].timedOut
         del config.matches[loser.id]
-    yield from mechMessage(ctx.message.channel,
+    await mechMessage(ctx.message.channel,
                            ":medal: " + loser.name + " just lost to " + winner.name + " in discordTCG!")
     grantMoney(winner.id, matchWager)
     grantMoney(loser.id, -1 * matchWager)
@@ -139,7 +137,7 @@ def gameOver(loserID):  # get ONLY discord ID of LOSER
         if random.randint(0, 4) % 2 == 1:
             givenMoney = random.randint(15, 40)
             grantMoney(winner.id, givenMoney)
-            yield from mechMessage(winner, "You found $" + str(givenMoney) + " lying in your opponent's ashes.")
+            await mechMessage(winner, "You found $" + str(givenMoney) + " lying in your opponent's ashes.")
 
 
 # Give someone an amount of a card (takes their discord ID)
@@ -194,24 +192,24 @@ def grantPacks(plyID, amount):
 
 
 # Automates damage dealing
-def damage(playerObj, amt):
+async def damage(playerObj, amt):
     playerObj.lifeforce -= amt
-    yield from add_to_trigger_queue("DAMAGE", playerObj, amt)
+    await add_to_trigger_queue("DAMAGE", playerObj, amt)
     if playerObj.lifeforce <= 0:
-        yield from gameOver(playerObjToDiscordID(playerObj))  # no ids
+        await gameOver(playerObjToDiscordID(playerObj))  # no ids
         return
 
 
 # Automates lifegain
-def heal(playerObj, amt):
+async def heal(playerObj, amt):
     playerObj.lifeforce += amt
-    yield from add_to_trigger_queue("HEAL", playerObj, amt)
+    await add_to_trigger_queue("HEAL", playerObj, amt)
     if playerObj.lifeforce <= 0:
-        yield from gameOver(playerObjToDiscordID(playerObj))
+        await gameOver(playerObjToDiscordID(playerObj))
         return
 
 
-def add_to_trigger_queue(trigger, playerObj, dataPassed):
+async def add_to_trigger_queue(trigger, playerObj, dataPassed):
     """Adds a trigger to a player's trigger queue (nodesToTrigger).
     dataPassed is the node destroyed/created, damage dealt/healed, etc
     playerObj is the player who was affected. ONLY the opponent player's nodes will trigger.
@@ -237,13 +235,12 @@ def add_to_trigger_queue(trigger, playerObj, dataPassed):
 
 
     if len(playerObj.nodesToTrigger) > 0:
-        yield from trigger_queued_triggers(playerObj)
+        await trigger_queued_triggers(playerObj)
     if len(playerObj.opponent.nodesToTrigger) > 0:
-        yield from trigger_queued_triggers(playerObj.opponent)
+        await trigger_queued_triggers(playerObj.opponent)
 
 
-@asyncio.coroutine
-def trigger_queued_triggers(ply):
+async def trigger_queued_triggers(ply):
     """This function actually acts on the queued triggers for a player."""
     print(ply.nodesToTrigger)
     opponent = ply.opponent
@@ -251,7 +248,7 @@ def trigger_queued_triggers(ply):
         while len(ply.nodesToTrigger) > 0:
             triggered = ply.nodesToTrigger.pop()
             print(triggered)
-            went_through = yield from nodeList[triggered[0]].triggerFunc(ply, opponent, triggered[1],
+            went_through = await nodeList[triggered[0]].triggerFunc(ply, opponent, triggered[1],
                                                                          triggered[2]) or []
 
             # If conditionals fail in a Node, they should explicitly return False. Otherwise, they'll be considered triggered.

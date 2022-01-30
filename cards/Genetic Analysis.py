@@ -12,8 +12,8 @@ TARGETS = "FRIENDLY_NODE"
 TYPE = "NodeGen"
 
 #What happens when you play it
-def playFunc(ply, enemy, target):
-	yield from ply.addNode( ply.nodes[target] )
+async def playFunc(ply, enemy, target):
+	await ply.addNode( ply.nodes[target] )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 
