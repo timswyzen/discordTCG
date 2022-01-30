@@ -25,5 +25,6 @@ If you have suggestions for cards or mechanics, feel free to message me on Disco
 - Abstract triggers out, as well as start/end of turn effects
 - Rework trade monolith function?
 
-To add cards, use the New Card.py file and "fill in the blanks". [API Documentation](https://github.com/Pazda/discordTCG/wiki)
+To add cards, use the New Card.py file and "fill in the blanks". 
+[Custom Card Documentation](https://github.com/Pazda/discordTCG/wiki)
 To add nodes, do the same with New Node.py.
