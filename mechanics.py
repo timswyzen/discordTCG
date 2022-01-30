@@ -33,10 +33,11 @@ def theHandout():
     print("Gave each player $100.")
 
 
-# Handling bot messages outside the bot files
 @asyncio.coroutine
-def mechMessage(bot, ctx, msg):
-    yield from bot.send_message(ctx, msg)
+def mechMessage(ctx, msg):
+    """Handles messaging outside of bot files. (necessary?)
+    ctx should be a channel."""
+    yield from ctx.send(msg)
 
 
 # Handles a Node entering the field
@@ -55,7 +56,7 @@ def sacNode(ply, enemy, index):  # Returns the node OBJECT, not the name.
     if 'Feast' not in ply.nodes and 'Feast' not in enemy.nodes:  # card...specific......
         ply.lifeforce += healthToGain
     ply.energy -= removedNode.energy
-    gameTrigger("SAC", ply, removedNode)
+    add_to_trigger_queue("SAC", ply, removedNode)
     return removedNode
 
 
@@ -65,7 +66,7 @@ def millCard(ply):
     cost = cardList[poppedCard.lower()].cost
     lifeToGain = abs(round(0.1 * ply.desperation * cost))
     ply.lifeforce += lifeToGain
-    gameTrigger("MILL", ply, None)
+    add_to_trigger_queue("MILL", ply, None)
     return poppedCard, lifeToGain
 
 
@@ -108,14 +109,16 @@ def isGameRunning(match):
 
 
 # Game ended. Takes the loser's discord ID
+@asyncio.coroutine
 def gameOver(loserID):  # get ONLY discord ID of LOSER
     loserObj = discordUserToPlayerObj(loserID)
     winnerID = playerObjToDiscordID(loserObj.opponent)
     bot = loserObj.bot
     ctx = loserObj.ctx
-    loser = ctx.message.server.get_member(loserID)
-    winner = ctx.message.server.get_member(winnerID)
-    print(str(config.matches))
+
+    loser = yield from ctx.message.guild.fetch_member(loserID)
+    winner = yield from ctx.message.guild.fetch_member(winnerID)
+
     if winner.id in config.matches:
         matchWager = config.matches[winner.id].wager
         matchTime = config.matches[winner.id].startTime
@@ -126,7 +129,7 @@ def gameOver(loserID):  # get ONLY discord ID of LOSER
         matchTime = config.matches[loser.id].startTime
         timedOut = config.matches[loser.id].timedOut
         del config.matches[loser.id]
-    yield from mechMessage(bot, ctx.message.channel,
+    yield from mechMessage(ctx.message.channel,
                            ":medal: " + loser.name + " just lost to " + winner.name + " in discordTCG!")
     grantMoney(winner.id, matchWager)
     grantMoney(loser.id, -1 * matchWager)
@@ -136,7 +139,7 @@ def gameOver(loserID):  # get ONLY discord ID of LOSER
         if random.randint(0, 4) % 2 == 1:
             givenMoney = random.randint(15, 40)
             grantMoney(winner.id, givenMoney)
-            yield from mechMessage(bot, winner, "You found $" + str(givenMoney) + " lying in your opponent's ashes.")
+            yield from mechMessage(winner, "You found $" + str(givenMoney) + " lying in your opponent's ashes.")
 
 
 # Give someone an amount of a card (takes their discord ID)
@@ -193,7 +196,7 @@ def grantPacks(plyID, amount):
 # Automates damage dealing
 def damage(playerObj, amt):
     playerObj.lifeforce -= amt
-    gameTrigger("DAMAGE", playerObj, amt)
+    add_to_trigger_queue("DAMAGE", playerObj, amt)
     if playerObj.lifeforce <= 0:
         yield from gameOver(playerObjToDiscordID(playerObj))  # no ids
         return
@@ -202,23 +205,21 @@ def damage(playerObj, amt):
 # Automates lifegain
 def heal(playerObj, amt):
     playerObj.lifeforce += amt
-    gameTrigger("HEAL", playerObj, amt)
+    add_to_trigger_queue("HEAL", playerObj, amt)
     if playerObj.lifeforce <= 0:
         yield from gameOver(playerObjToDiscordID(playerObj))
         return
 
 
-"""Handle triggers. 
-dataPassed is the node destroyed/created, damage dealt/healed, etc
-playerObj is the player who was affected. ONLY the opponent player's nodes will trigger.
-Make sure to print out using the new mechMessage() so people know what was triggered.
-Could also use this to log!
-Possible triggers: "HEAL", "DAMAGE", "BURN", "MILL", "SAC", "NODESPAWN", "PLAYED_CARD"
-All currently only trigger your opponent's Nodes. Eventually do this specific for each type.
-"""
-
-
-def gameTrigger(trigger, playerObj, dataPassed):
+def add_to_trigger_queue(trigger, playerObj, dataPassed):
+    """Adds a trigger to a player's trigger queue (nodesToTrigger).
+    dataPassed is the node destroyed/created, damage dealt/healed, etc
+    playerObj is the player who was affected. ONLY the opponent player's nodes will trigger.
+    Make sure to print out using the new mechMessage() so people know what was triggered.
+    Could also use this to log!
+    Possible triggers: "HEAL", "DAMAGE", "BURN", "MILL", "SAC", "NODESPAWN", "PLAYED_CARD"
+    All currently only trigger your opponent's Nodes. Eventually do this specific for each type.
+    """
     for node in playerObj.nodes:
         if nodeList[node.lower()].triggerType == trigger:
             playerObj.log.append(playerObj.name + "'s " + node + " was triggered.")
@@ -237,3 +238,16 @@ def gameTrigger(trigger, playerObj, dataPassed):
         playerObj.log.append(playerObj.name + " took " + str(dataPassed) + " damage.")
     elif trigger == "HEAL":
         playerObj.log.append(playerObj.name + " healed for " + str(dataPassed) + ".")
+
+    trigger_queued_triggers(playerObj)
+    trigger_queued_triggers(playerObj.opponent)
+
+
+def trigger_queued_triggers(ply):
+    """This function actually acts on the queued triggers for a player."""
+    opponent = ply.opponent
+    if len(ply.nodesToTrigger) > 0:
+        for triggered in ply.nodesToTrigger:
+            yield from nodeList[triggered[0]].triggerFunc(ply, opponent, triggered[1],
+                                                                    triggered[2]) or []
+        ply.nodesToTrigger = []

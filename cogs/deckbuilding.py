@@ -175,7 +175,7 @@ class Deckbuilding(commands.Cog):
             card = ' '.join(args[1:])
             amt = int(args[0])
         except:
-            yield from ctx.message.channel.send("Incorrect syntax. =remove <cardname> <amount>")
+            yield from ctx.message.channel.send("Incorrect syntax. =remove <amount> <cardname>")
             return
 
         playerData = getPlyData(ctx.message.author)

@@ -1,6 +1,6 @@
 #!/user/bin/env python
 import random
-from mechanics import nodeETB, sacNode, gameTrigger
+from mechanics import nodeETB, sacNode, add_to_trigger_queue
 
 
 class Player:
@@ -68,7 +68,7 @@ class Player:
             self.desperation -= self.desperationBoost
             self.desperationBoost = 0
         self.opponentCantSpawnNodes = False
-        gameTrigger("NEW_TURN", self, None)
+        add_to_trigger_queue("NEW_TURN", self, None)
 
     def drawCard(self):
         # mill out
@@ -76,17 +76,17 @@ class Player:
             return False
         self.hand.append(self.deck.pop())
         return True
-        gameTrigger("DRAW", self, None)
+        add_to_trigger_queue("DRAW", self, None)
 
     def randomDiscard(self):
         if len(self.hand) > 0:
             discarded = self.hand.pop(random.randint(0, len(self.hand) - 1))
-        gameTrigger("DISCARD", self, discarded)
+        add_to_trigger_queue("DISCARD", self, discarded)
 
     def addNode(self, nodeName):  # TODO: possibly move to mechanics.py for consistency with sacNode()
         if self.opponent.opponentCantSpawnNodes:
             return
-        gameTrigger("NODESPAWN", self, nodeName)
+        add_to_trigger_queue("NODESPAWN", self, nodeName)
         if len(self.nodes) >= self.maxNodes:
             sacNode(self, self.opponent, self.maxNodes - 1)
         self.nodes.insert(0, nodeName)
@@ -97,7 +97,7 @@ class Player:
         for i in range(amt):
             if len(self.deck) > 0:
                 burnedCards.append(self.deck.pop())
-        gameTrigger("BURN", self, burnedCards)
+        add_to_trigger_queue("BURN", self, burnedCards)
 
     def removeNode(self, nodeName, enerCost):
         for node in self.nodes:
