@@ -35,7 +35,8 @@ Possible triggers: "HEAL", "DAMAGE", "BURN", "MILL", "SAC", "NODESPAWN", "PLAYED
 def triggerFunc(ply, enemy, data, affectedPlayer):
     if affectedPlayer == "friendly" and not mechanics.cardList[data.lower()].cardtype == "NodeGen":
         ply.playedNode = False  # don't need to check for nodegen cause it'll just overwrite this anyway... better than redoing data arg
-    return
+    else:
+        return False
 
 
 addNode(NAME, DESC, playFunc, oneTimeFunc, ENERGY, deathFunc, TRIGGER, triggerFunc)

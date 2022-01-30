@@ -11,7 +11,7 @@ TRIGGER = None
 
 #What happens when you play it (at the start of your turn)
 def playFunc(ply,enemy):
-	ply.burn(4)
+	yield from ply.burn(4)
 	return
 	
 #Abilities that only happens when the Node is spawned

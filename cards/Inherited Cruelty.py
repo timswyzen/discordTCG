@@ -16,7 +16,7 @@ def playFunc(ply, enemy, target):
 	i = 0
 	for _ in range( ply.cardsThisTurn ):
 		if i < 3:
-			ply.addNode( 'Swarmer' )
+			yield from ply.addNode( 'Swarmer' )
 		i += 1
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )

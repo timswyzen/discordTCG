@@ -22,7 +22,7 @@ def deathFunc(ply,enemy):
 	if len(enemy.nodes) > 0:
 		target = random.randint( 0, len(enemy.nodes)-1 )
 		nodeType = mechanics.nodeList[enemy.nodes[target].lower()]
-		ply.addNode( enemy.nodes[target] )
+		yield from ply.addNode( enemy.nodes[target] )
 		enemy.energy -= nodeType.energy
 		enemy.nodes.pop( target )
 	return

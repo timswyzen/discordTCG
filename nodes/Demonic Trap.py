@@ -21,7 +21,7 @@ def oneTimeFunc(ply,enemy):
 def deathFunc(ply,enemy):
 	if len(enemy.nodes) > 0:
 		target = random.randint(0,len(enemy.nodes)-1)
-		mechanics.sacNode(enemy, ply, target)
+		yield from mechanics.sacNode(enemy, ply, target)
 		return
 	
 #What happens when the TRIGGER is triggered

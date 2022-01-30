@@ -109,8 +109,14 @@ class Collecting(commands.Cog):
         yield from ctx.message.channel.send("Type 'quit' at any time to quit the trade menu.")
         yield from ctx.message.channel.send(
             "What are you offering? Syntax: <amount>x <card> or $<money amount>. For example:\n2x Voracity\n$20")
-        message = yield from self.bot.wait_for('message', check=lambda message: message.author == ctx.message.author,
+
+        try:
+            message = yield from self.bot.wait_for('message', check=lambda message: message.author == ctx.message.author,
                                                timeout=90)
+        except TimeoutError:
+            ctx.message.channel.send("Timed out waiting for response. Cancelling trade.")
+            return
+
         if message.content.lower().startswith('quit'):
             yield from ctx.message.channel.send("Quit the trade menu.")
             return
@@ -153,8 +159,14 @@ class Collecting(commands.Cog):
                 trader.append(cardEntry)
 
         yield from ctx.message.channel.send("What do you want in return? (same syntax)")
-        message = yield from self.bot.wait_for('message', check=lambda message: message.author == ctx.message.author,
+
+        try:
+            message = yield from self.bot.wait_for('message', check=lambda message: message.author == ctx.message.author,
                                                timeout=90)
+        except TimeoutError:
+            ctx.message.channel.send("Timed out waiting for response. Cancelling trade.")
+            return
+
         if message.content.lower().startswith('quit'):
             yield from ctx.message.channel.send("Quit the trade menu.")
             return
@@ -209,7 +221,12 @@ class Collecting(commands.Cog):
                     'no')) and msg.author == author
 
         yield from ctx.message.channel.send(target.name + ": Do you accept the above trade? ('yes' or 'no')")
-        message = yield from self.bot.wait_for('message', check=check(ctx.message.author), timeout=30)
+        try:
+            message = yield from self.bot.wait_for('message', check=check(ctx.message.author), timeout=30)
+        except TimeoutError:
+            ctx.message.channel.send("Timed out waiting for response. Cancelling trade.")
+            return
+
         if message.content.lower().startswith('no'):
             yield from ctx.message.channel.send("Trade request denied.")
             return

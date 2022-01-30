@@ -16,7 +16,7 @@ def playFunc(ply, enemy, target):
 	tempNodes = ply.nodes.copy()[::-1]
 	for idx,node in enumerate(tempNodes):
 		if 'Trap' in node: 
-			mechanics.sacNode( ply, enemy, len(tempNodes)-1-idx )
+			yield from mechanics.sacNode( ply, enemy, len(tempNodes)-1-idx )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

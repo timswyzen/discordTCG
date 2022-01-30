@@ -18,7 +18,7 @@ def playFunc(ply, enemy, target):
 	for idx,node in enumerate(tempNodes):
 		if 'Generator' in node: 
 			amtToGain += 2
-			mechanics.sacNode( ply, enemy, len(tempNodes)-1-idx )
+			yield from mechanics.sacNode( ply, enemy, len(tempNodes)-1-idx )
 	ply.energy += amtToGain
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )

@@ -13,9 +13,9 @@ TYPE = "NodeGen"
 
 #What happens when you play it
 def playFunc(ply, enemy, target):
-	ply.addNode( 'Pressure' )
-	ply.addNode( 'Pressure' )
-	ply.addNode( 'Pressure' )
+	yield from ply.addNode( 'Pressure' )
+	yield from ply.addNode( 'Pressure' )
+	yield from ply.addNode( 'Pressure' )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

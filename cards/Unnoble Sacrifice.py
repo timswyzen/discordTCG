@@ -15,7 +15,7 @@ TYPE = "PlyInteraction"
 def playFunc(ply, enemy, target):
 	lifeLost = math.ceil( ply.lifeforce / 2 )
 	yield from mechanics.damage( ply, lifeLost )
-	enemy.burn( lifeLost )
+	yield from enemy.burn( lifeLost )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

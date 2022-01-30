@@ -18,7 +18,7 @@ def playFunc(ply, enemy, target):
 	ply.nodes.remove( target )
 	if len(enemy.nodes) < enemy.maxNodes:
 		enemy.addNode( nodeType.name )
-		mechanics.sacNode( enemy, ply, enemy.nodes.index( nodeType.name ) )
+		yield from mechanics.sacNode( enemy, ply, enemy.nodes.index( nodeType.name ) )
 	
 addCard( NAME, COST, RARITY, DESC, TARGETS, TYPE, playFunc )
 

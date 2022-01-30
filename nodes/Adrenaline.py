@@ -14,7 +14,7 @@ def playFunc(ply,enemy):
 	if ply.lifeforce < 15:
 		yield from mechanics.heal( ply, 5 )
 		ply.desperation += 5
-		mechanics.sacNode( ply, enemy, ply.nodes.index('Adrenaline') )
+		yield from mechanics.sacNode( ply, enemy, ply.nodes.index('Adrenaline') )
 	return
 	
 #Abilities that only happens when the Node is spawned

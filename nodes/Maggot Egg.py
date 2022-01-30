@@ -11,8 +11,8 @@ TRIGGER = None
 
 #What happens when you play it (at the start of your turn)
 def playFunc(ply,enemy):
-	mechanics.sacNode( ply, enemy, ply.nodes.index( 'Maggot Egg' ) )
-	ply.addNode( 'Parasite' )
+	yield from mechanics.sacNode( ply, enemy, ply.nodes.index( 'Maggot Egg' ) )
+	yield from ply.addNode( 'Parasite' )
 	return
 	
 #Abilities that only happens when the Node is spawned

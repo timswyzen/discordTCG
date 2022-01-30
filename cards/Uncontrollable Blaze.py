@@ -15,10 +15,10 @@ TYPE = "NodeInteraction"
 def playFunc(ply, enemy, target):
 	selfDmg = 0
 	for _ in range( len(enemy.nodes) ):
-		mechanics.sacNode( enemy, ply, 0 )
+		yield from mechanics.sacNode( enemy, ply, 0 )
 		selfDmg += 3
 	for _ in range( len(ply.nodes) ):
-		mechanics.sacNode( ply, enemy, 0 )
+		yield from mechanics.sacNode( ply, enemy, 0 )
 		selfDmg += 3
 	yield from mechanics.damage( ply, selfDmg )
 	

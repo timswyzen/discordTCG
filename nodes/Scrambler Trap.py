@@ -19,8 +19,8 @@ def oneTimeFunc(ply,enemy):
 	
 #What happens when it's sacrificed/killed
 def deathFunc(ply,enemy):
-	enemy.randomDiscard()
-	enemy.randomDiscard()
+	yield from enemy.randomDiscard()
+	yield from enemy.randomDiscard()
 	return
 	
 #What happens when the TRIGGER is triggered

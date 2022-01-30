@@ -21,7 +21,7 @@ def oneTimeFunc(ply,enemy):
 def deathFunc(ply,enemy):
 	for i in range( len(ply.nodes) ):
 		if not ply.nodes[i] == 'Foundation':
-			mechanics.sacNode( ply, enemy, 0 )
+			yield from mechanics.sacNode( ply, enemy, 0 )
 	return
 	
 #What happens when the TRIGGER is triggered
