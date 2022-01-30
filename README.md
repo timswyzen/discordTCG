@@ -18,7 +18,7 @@ If you have suggestions for cards or mechanics, feel free to open an Issue!
 5. Run matchFunctions.py
 
 ## Potential features
-- Multiple triggers per Node
+- Multiple triggers per Node (list of objects with function and its type?)
 - Integrations with other bots
 - Analytics
 - Automatic testing
