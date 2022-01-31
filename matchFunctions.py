@@ -17,14 +17,13 @@ config.matches = {}
 
 # Bot setup
 TOKEN = config.TOKEN
-bot = commands.Bot(command_prefix='=')
+activity = discord.Game(name=f"Version {config.VERSION}. Use =help!")
+bot = commands.Bot(command_prefix='=', activity=activity)
 
 
 # Load extensions
 @bot.event
 async def on_ready():
-    await bot.change_presence(
-        status='Version ' + config.VERSION)  # TODO: show current # matches once this gets bigger xd
     for extension in startup_extensions:
         try:
             bot.load_extension(extension)
@@ -90,7 +89,6 @@ async def playCard(match, activePlayer, activePlayerObj, opponent, opponentObj, 
     # Play the card (assuming already got proper targets)
     await playedObject.func(activePlayerObj, opponentObj,
                                  targets) or []  # the or [] does something undefined but makes it work.
-    # TODO: figure out why 'or []' works LMAO
     await ctx.message.channel.send(activePlayer.name + " played " + str(playedObject) + "\n\n")
     await mechanics.add_to_trigger_queue("PLAYED_CARD", activePlayerObj, playedObject.name)
 
@@ -192,10 +190,6 @@ async def startRound(match, activePlayer, activePlayerObj, otherPlayer, otherPla
         return
 
     # Activate all of active player's nodes/initialize turn-based vars
-    if len(activePlayerObj.nodes) > 0:
-        for thisNode in activePlayerObj.nodes.copy():
-            await mechanics.activateNode(thisNode, activePlayerObj, otherPlayerObj)
-        await ctx.message.channel.send(activePlayerObj.name + " activated their start of turn abilities.")
     activePlayerObj.newTurn()
     otherPlayerObj.newTurn()
     await activePlayerObj.newMyTurn()
@@ -352,7 +346,6 @@ async def challenge(ctx, target: discord.Member = None, *args):
         wager = 0
 
     # Initialize game
-    # TODO: [challenger] -> [ctx.message.author.id]
     config.matches[challengerID] = gamebase.TCGame(challengerID, target.id, wager)
     config.matches[challengerID].chalObj = playerbase.Player(ctx.message.author.name, challengerDeck, [], bot, ctx)
     config.matches[challengerID].defObj = playerbase.Player(target.name, defenderDeck, [], bot, ctx)

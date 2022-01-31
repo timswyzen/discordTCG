@@ -1,7 +1,7 @@
 #!/user/bin/env python
 
 from cardList import addCard
-import tcgpowers, mechanics, random
+import mechanics, random
 
 #Simple variables
 NAME = "Memory Lapse"

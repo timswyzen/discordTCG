@@ -1,32 +1,18 @@
 #!/user/bin/env python
 
 from cardList import addNode
-import tcgpowers, mechanics
+import mechanics
 
 # Simple variables
+from classes.NodeFunction import NodeFunction
+
 NAME = "Blood"
 DESC = "Whenever you damage your opponent, heal that much lifeforce."
 ENERGY = -3
-TRIGGER = "DAMAGE"
-
-
-# What happens when you play it (at the start of your turn)
-async def playFunc(ply, enemy):
-    return
-
-
-# Abilities that only happens when the Node is spawned
-async def oneTimeFunc(ply, enemy):
-    return
-
-
-# What happens when it's sacrificed/killed
-async def deathFunc(ply, enemy):
-    return
 
 
 # What happens when the TRIGGER is triggered
-async def triggerFunc(ply, enemy, dataPassed, affectedPlayer):
+async def damage_func(ply, enemy, dataPassed, affectedPlayer):
     # dataPassed is damage dealt
     if affectedPlayer == "enemy":
         await mechanics.heal(ply, dataPassed)
@@ -34,4 +20,11 @@ async def triggerFunc(ply, enemy, dataPassed, affectedPlayer):
         return False
 
 
-addNode(NAME, DESC, playFunc, oneTimeFunc, ENERGY, deathFunc, TRIGGER, triggerFunc)
+FUNC_LIST = [
+    NodeFunction(
+        func=damage_func,
+        trigger_type="DAMAGE"
+    )
+]
+
+addNode(NAME, DESC, ENERGY, FUNC_LIST)

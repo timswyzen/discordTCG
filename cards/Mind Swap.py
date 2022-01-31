@@ -1,7 +1,7 @@
 #!/user/bin/env python
 
 from cardList import addCard
-import tcgpowers, mechanics
+import mechanics
 
 # Simple variables
 NAME = "Mind Swap"
@@ -14,7 +14,7 @@ TYPE = "PlyInteraction"
 
 # What happens when you play it
 async def playFunc(ply, enemy, target):
-    ply.mindSwap = True  # for the playerbase thing TODO: find a better way lol
+    ply.mindSwap = True  # for the playerbase thing
     ply.desperation, enemy.desperation = enemy.desperation, ply.desperation
     ply.hunger, enemy.hunger = enemy.hunger, ply.hunger
 

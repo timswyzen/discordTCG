@@ -1,28 +1,29 @@
 #!/user/bin/env python
 
 from cardList import addNode
-import tcgpowers, mechanics
+import mechanics
 
-#Simple variables
+# Simple variables
+from classes.NodeFunction import NodeFunction
+
 NAME = "Prayer"
 DESC = "At the start of your turn, heal 1 lifeforce for each Node you control."
 ENERGY = -2
-TRIGGER = None
 
-#What happens when you play it
-async def playFunc(ply,enemy):
-	await mechanics.heal( ply, len(ply.nodes) )
-	return
-	
-async def oneTimeFunc(ply,enemy):
-	return
-	
-#What happens when it's sacrificed/killed
-async def deathFunc(ply,enemy):
-	return
-	
-#What happens when the TRIGGER is triggered
-async def triggerFunc(ply,enemy):
-	return
-	
-addNode( NAME, DESC, playFunc, oneTimeFunc, ENERGY, deathFunc, TRIGGER, triggerFunc )
+
+# What happens when you play it
+async def turn_func(ply, enemy, data, affected_player):
+    if affected_player == "self":
+        await mechanics.heal(ply, len(ply.nodes))
+    else:
+        return False
+
+
+FUNC_LIST = [
+    NodeFunction(
+        func=turn_func,
+        trigger_type="TURN_START"
+    )
+]
+
+addNode(NAME, DESC, ENERGY, FUNC_LIST)

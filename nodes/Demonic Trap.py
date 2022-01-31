@@ -1,31 +1,30 @@
 #!/user/bin/env python
+from random import random
 
+import mechanics
 from cardList import addNode
-import tcgpowers
 
-#Simple variables
+
+# Simple variables
+from classes.NodeFunction import NodeFunction
+
 NAME = "Demonic Trap"
 DESC = "When this Node is destroyed, destroy an opponent's Node at random."
 ENERGY = -1
-TRIGGER = None
 
-#What happens when you play it (at the start of your turn)
-async def playFunc(ply,enemy):
-	return
-	
-#Abilities that only happens when the Node is spawned
-async def oneTimeFunc(ply,enemy):
-	return
-	
-#What happens when it's sacrificed/killed
-async def deathFunc(ply,enemy):
-	if len(enemy.nodes) > 0:
-		target = random.randint(0,len(enemy.nodes)-1)
-		await mechanics.sacNode(enemy, ply, target)
-		return
-	
-#What happens when the TRIGGER is triggered
-async def triggerFunc(ply,enemy):
-	return
-	
-addNode( NAME, DESC, playFunc, oneTimeFunc, ENERGY, deathFunc, TRIGGER, triggerFunc )
+
+# What happens when it's sacrificed/killed
+async def death_func(ply, enemy, data, affected_player):
+    if len(enemy.nodes) > 0:
+        target = random.randint(0, len(enemy.nodes) - 1)
+        await mechanics.sacNode(enemy, ply, target)
+
+
+FUNC_LIST = [
+    NodeFunction(
+        func=death_func,
+        trigger_type="LTB"
+    )
+]
+
+addNode(NAME, DESC, ENERGY, FUNC_LIST)
