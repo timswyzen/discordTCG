@@ -42,14 +42,18 @@ async def mechMessage(ctx, msg):
 # Handles a Node entering the field
 async def nodeETB(ply, nodeName):
     nodeObj = nodeList[nodeName.lower()]
-    await nodeObj.spawnFunc(ply, ply.opponent)
+    for func in nodeObj.funcs:
+        if func.trigger_type == "ETB":
+            await func.func(ply, ply.opponent, None, ply)
     ply.energy = ply.energy + nodeObj.energy
 
 
 # Player sacrificed a node as part of an ability (for health)
 async def sacNode(ply, enemy, index):  # Returns the node OBJECT, not the name.
     removedNode = nodeList[ply.nodes[index].lower()]
-    await removedNode.deathFunc(ply, enemy)  # gets rid of temp effects n stuff
+    for func in removedNode.funcs:
+        if func.trigger_type == "LTB":
+            await func.func(ply, enemy, None, ply)
     ply.nodes.remove(ply.nodes[index])
     healthToGain = abs(round(0.1 * ply.hunger * removedNode.energy))
     if 'Feast' not in ply.nodes and 'Feast' not in enemy.nodes:  # card...specific......
@@ -215,7 +219,8 @@ async def add_to_trigger_queue(trigger, playerObj, dataPassed):
     playerObj is the player who was affected. ONLY the opponent player's nodes will trigger.
     Make sure to print out using the new mechMessage() so people know what was triggered.
     Could also use this to log!
-    Possible triggers: "HEAL", "DAMAGE", "BURN", "MILL", "SAC", "NODESPAWN", "PLAYED_CARD"
+    Possible triggers: "HEAL", "DAMAGE", "BURN", "MILL", "SAC", "NODESPAWN", "PLAYED_CARD", "NEW_TURN"
+    Also, "ETB" and "LTB" but they are not handled here. (nodeETB(), sacNode())
     All currently only trigger your opponent's Nodes. Eventually do this specific for each type.
     """
 
@@ -223,18 +228,14 @@ async def add_to_trigger_queue(trigger, playerObj, dataPassed):
     # This try is to ignore the trigger from initial card draw
     try:
         for node in playerObj.nodes:
-            if nodeList[node.lower()].triggerType == trigger:
-
-                playerObj.nodesToTrigger.append([node.lower(), dataPassed, "friendly"])
+            for node_function in node.funcs:
+                if node_function.trigger_type == trigger:
+                    playerObj.nodesToTrigger.append([node_function.func, dataPassed, "friendly", node.lower()])
         for node in playerObj.opponent.nodes:
-            if nodeList[node.lower()].triggerType == trigger:
-                # playerObj.log.append(playerObj.opponent.name + "'s " + node + " was triggered.")
-                playerObj.opponent.nodesToTrigger.append([node.lower(), dataPassed, "enemy"])
+            for node_function in node.funcs:
+                if node_function.trigger_type == trigger:
+                    playerObj.opponent.nodesToTrigger.append([node_function.func, dataPassed, "enemy", node.lower()])
     except AttributeError:
-        return
-
-
-    if len(playerObj.nodesToTrigger) > 0:
         await trigger_queued_triggers(playerObj)
     if len(playerObj.opponent.nodesToTrigger) > 0:
         await trigger_queued_triggers(playerObj.opponent)
@@ -248,12 +249,12 @@ async def trigger_queued_triggers(ply):
         while len(ply.nodesToTrigger) > 0:
             triggered = ply.nodesToTrigger.pop()
             print(triggered)
-            went_through = await nodeList[triggered[0]].triggerFunc(ply, opponent, triggered[1],
+            went_through = await triggered[0](ply, opponent, triggered[1],
                                                                          triggered[2]) or []
 
             # If conditionals fail in a Node, they should explicitly return False. Otherwise, they'll be considered triggered.
             if went_through != False:
-                node_name = nodeList[triggered[0].lower()].name
+                node_name = nodeList[triggered[3].lower()].name
                 ply.log.append(ply.name + "'s " + node_name + " was triggered.")
 
 

@@ -192,10 +192,6 @@ async def startRound(match, activePlayer, activePlayerObj, otherPlayer, otherPla
         return
 
     # Activate all of active player's nodes/initialize turn-based vars
-    if len(activePlayerObj.nodes) > 0:
-        for thisNode in activePlayerObj.nodes.copy():
-            await mechanics.activateNode(thisNode, activePlayerObj, otherPlayerObj)
-        await ctx.message.channel.send(activePlayerObj.name + " activated their start of turn abilities.")
     activePlayerObj.newTurn()
     otherPlayerObj.newTurn()
     await activePlayerObj.newMyTurn()
