@@ -3,28 +3,28 @@
 from cardList import addNode
 import tcgpowers, mechanics
 
-#Simple variables
+# Simple variables
+from classes.NodeFunction import NodeFunction
+
 NAME = "Lesser Leech"
 DESC = "At the end of your turn, deal 2 damage to your opponent. Gain lifeforce equal to the damage dealt."
 ENERGY = -1
-TRIGGER = None
 
-#What happens when you play it
-async def playFunc(ply,enemy):
-	await mechanics.damage( enemy, 2 )
-	await mechanics.heal( ply, 2 )
-	return
-	
-#Abilities that only happens when the Node is spawned
-async def oneTimeFunc(ply,enemy):
-	return
-	
-#What happens when it's sacrificed/killed
-async def deathFunc(ply,enemy):
-	return
-	
-#What happens when the TRIGGER is triggered
-async def triggerFunc(ply,enemy):
-	return
-	
-addNode( NAME, DESC, playFunc, oneTimeFunc, ENERGY, deathFunc, TRIGGER, triggerFunc )
+
+# What happens when you play it
+async def turn_func(ply, enemy, data, affected_player):
+    if affected_player == ply:
+        await mechanics.damage(enemy, 2)
+        await mechanics.heal(ply, 2)
+    else:
+        return False
+
+
+FUNC_LIST = [
+    NodeFunction(
+        func=turn_func,
+        trigger_type="TURN_START"
+    )
+]
+
+addNode(NAME, DESC, ENERGY, FUNC_LIST)

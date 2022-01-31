@@ -3,28 +3,28 @@
 from cardList import addNode
 import tcgpowers, mechanics
 
-#Simple variables
+# Simple variables
+from classes.NodeFunction import NodeFunction
+
 NAME = "Maggot Egg"
 DESC = "At the start of your turn, sacrifice this Node and spawn a Parasite Node."
 ENERGY = 0
-TRIGGER = None
 
-#What happens when you play it (at the start of your turn)
-async def playFunc(ply,enemy):
-	await mechanics.sacNode( ply, enemy, ply.nodes.index( 'Maggot Egg' ) )
-	await ply.addNode( 'Parasite' )
-	return
-	
-#Abilities that only happens when the Node is spawned
-async def oneTimeFunc(ply,enemy):
-	return
-	
-#What happens when it's sacrificed/killed
-async def deathFunc(ply,enemy):
-	return
-	
-#What happens when the TRIGGER is triggered
-async def triggerFunc(ply,enemy):
-	return
-	
-addNode( NAME, DESC, playFunc, oneTimeFunc, ENERGY, deathFunc, TRIGGER, triggerFunc )
+
+# What happens when you play it (at the start of your turn)
+async def start_func(ply, enemy, data, affected_player):
+    if affected_player == ply:
+        await mechanics.sacNode(ply, enemy, ply.nodes.index('Maggot Egg'))
+        await ply.addNode('Parasite')
+    else:
+        return False
+
+
+FUNC_LIST = [
+    NodeFunction(
+        func=start_func,
+        trigger_type="TURN_START"
+    )
+]
+
+addNode(NAME, DESC, ENERGY, FUNC_LIST)

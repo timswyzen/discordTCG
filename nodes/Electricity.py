@@ -15,7 +15,8 @@ ENERGY = 2
 async def damage_func(ply, enemy, data, affected_player):
     if affected_player == ply:
         await mechanics.damage(enemy, 2)
-    return
+    else:
+        return False
 
 
 FUNC_LIST = [

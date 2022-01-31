@@ -3,25 +3,24 @@
 from cardList import addNode
 import tcgpowers, mechanics
 
-#Simple variables
+# Simple variables
+from classes.NodeFunction import NodeFunction
+
 NAME = "Trap"
 DESC = "When destroyed, deal 3 damage to your opponent."
 ENERGY = 0
-TRIGGER = None
 
-#What happens when you play it
-async def playFunc(ply,enemy):
-	return
-	
-async def oneTimeFunc(ply,enemy):
-	return
-	
-#What happens when it's sacrificed/killed
-async def deathFunc(ply,enemy):
-	await mechanics.damage( enemy, 3 )
-	
-#What happens when the TRIGGER is triggered
-async def triggerFunc(ply,enemy):
-	return
-	
-addNode( NAME, DESC, playFunc, oneTimeFunc, ENERGY, deathFunc, TRIGGER, triggerFunc )
+
+# What happens when it's sacrificed/killed
+async def death_func(ply, enemy, data, affected_player):
+    await mechanics.damage(enemy, 3)
+
+
+FUNC_LIST = [
+    NodeFunction(
+        func=death_func,
+        trigger_type="LTB"
+    )
+]
+
+addNode(NAME, DESC, ENERGY, FUNC_LIST)
