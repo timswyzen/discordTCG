@@ -12,7 +12,7 @@ ENERGY = -5
 
 
 async def trigger_func(ply, enemy, data, affectedPlayer):
-    if affectedPlayer == "friendly" and not mechanics.cardList[data.lower()].cardtype == "NodeGen":
+    if affectedPlayer == "self" and not mechanics.cardList[data.lower()].cardtype == "NodeGen":
         ply.playedNode = False  # don't need to check for nodegen cause it'll just overwrite this anyway... better than redoing data arg
     else:
         return False

@@ -13,7 +13,7 @@ ENERGY = -1
 
 # What happens when you play it (at the start of your turn)
 async def sac_func(ply, enemy, data, affected_player):
-    if affected_player == ply:
+    if affected_player == "self":
         if ply.lifeforce < 15:
             await mechanics.heal(ply, 5)
             ply.desperation += 5

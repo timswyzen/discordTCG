@@ -13,7 +13,7 @@ ENERGY = -4
 
 # What happens when you play it (at the start of your turn)
 async def turn_func(ply, enemy, data, affected_player):
-    if affected_player == ply:
+    if affected_player == "self":
         await mechanics.damage(enemy, 3 * ply.nodes.count('Swarmer'))
     else:
         return False

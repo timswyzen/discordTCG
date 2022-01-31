@@ -12,7 +12,7 @@ ENERGY = -1
 
 
 async def trigger_func(ply, enemy, data, affectedPlayer):
-    if affectedPlayer == "friendly":
+    if affectedPlayer == "self":
         await mechanics.heal(ply, 1)
     else:
         return False

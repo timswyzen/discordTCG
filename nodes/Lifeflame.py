@@ -13,7 +13,7 @@ ENERGY = 3
 
 # What happens when you play it (at the start of your turn)
 async def turn_func(ply, enemy, data, affected_player):
-    if affected_player == ply:
+    if affected_player == "self":
         await ply.burn(4)
     else:
         return False

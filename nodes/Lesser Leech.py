@@ -13,7 +13,7 @@ ENERGY = -1
 
 # What happens when you play it
 async def turn_func(ply, enemy, data, affected_player):
-    if affected_player == ply:
+    if affected_player == "self":
         await mechanics.damage(enemy, 2)
         await mechanics.heal(ply, 2)
     else:

@@ -13,7 +13,7 @@ ENERGY = -1
 
 # What happens when the TRIGGER is triggered
 async def trigger_func(ply, enemy, data, affectedPlayer):
-    if affectedPlayer == "friendly" and data.name == "Drugged":
+    if affectedPlayer == "self" and data.name == "Drugged":
         await ply.addNode('Drugged')
     else:
         return False

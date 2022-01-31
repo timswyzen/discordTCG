@@ -69,7 +69,7 @@ class Player:
             self.desperation -= self.desperationBoost
             self.desperationBoost = 0
         self.opponentCantSpawnNodes = False
-        await add_to_trigger_queue("NEW_TURN", self, None)
+        await add_to_trigger_queue("TURN_START", self, None)
 
 
     async def drawCard(self):

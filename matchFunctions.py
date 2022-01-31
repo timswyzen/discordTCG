@@ -24,8 +24,6 @@ bot = commands.Bot(command_prefix='=', activity=activity)
 # Load extensions
 @bot.event
 async def on_ready():
-    await bot.change_presence(
-        status='Version ' + config.VERSION)
     for extension in startup_extensions:
         try:
             bot.load_extension(extension)

@@ -13,7 +13,7 @@ ENERGY = -1
 
 # What happens when you play it
 async def play_func(ply, enemy, data, affected_player):
-    if affected_player == ply:
+    if affected_player == "self":
         await mechanics.damage(enemy, 1)
     else:
         return False

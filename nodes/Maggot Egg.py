@@ -13,7 +13,7 @@ ENERGY = 0
 
 # What happens when you play it (at the start of your turn)
 async def start_func(ply, enemy, data, affected_player):
-    if affected_player == ply:
+    if affected_player == "self":
         await mechanics.sacNode(ply, enemy, ply.nodes.index('Maggot Egg'))
         await ply.addNode('Parasite')
     else:

@@ -13,7 +13,7 @@ ENERGY = -4
 
 # What happens when you play it (at the start of your turn)
 async def turn_func(ply, enemy, data, affected_player):
-    if affected_player == ply:
+    if affected_player == "self":
         enemy.hunger -= 10
     else:
         return False
