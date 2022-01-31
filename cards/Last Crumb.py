@@ -1,7 +1,7 @@
 #!/user/bin/env python
 
 from cardList import addCard
-import tcgpowers, mechanics
+import mechanics
 
 #Simple variables
 NAME = "Last Crumb"

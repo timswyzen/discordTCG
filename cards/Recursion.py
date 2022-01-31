@@ -1,7 +1,7 @@
 #!/user/bin/env python
 
 from cardList import addCard
-import tcgpowers
+
 import mechanics
 
 #Simple variables

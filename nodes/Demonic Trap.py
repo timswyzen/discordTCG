@@ -3,7 +3,7 @@ from random import random
 
 import mechanics
 from cardList import addNode
-import tcgpowers
+
 
 # Simple variables
 from classes.NodeFunction import NodeFunction

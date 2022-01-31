@@ -1,7 +1,7 @@
 #!/user/bin/env python
 
 from cardList import addCard
-import tcgpowers, mechanics, math
+import mechanics, math
 
 #Simple variables
 NAME = "Unnoble Sacrifice"

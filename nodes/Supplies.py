@@ -1,7 +1,7 @@
 #!/user/bin/env python
 
 from cardList import addNode
-import tcgpowers, mechanics
+import mechanics
 
 # Simple variables
 from classes.NodeFunction import NodeFunction

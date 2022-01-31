@@ -1,7 +1,7 @@
 #!/user/bin/env python
 
 from cardList import addNode
-import tcgpowers
+
 
 #Simple variables
 NAME = "Generator"

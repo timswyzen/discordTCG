@@ -1,7 +1,7 @@
 #!/user/bin/env python
 
 from cardList import addCard
-import tcgpowers
+
 
 #Simple variables
 NAME = "Minor Panic"

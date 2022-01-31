@@ -1,7 +1,7 @@
 #!/user/bin/env python
 
 from cardList import addCard
-import tcgpowers, mechanics, random, os
+import mechanics, random, os
 
 #Simple variables
 NAME = "External Knowledge"
