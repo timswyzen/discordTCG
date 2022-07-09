@@ -24,10 +24,6 @@ If you have suggestions for cards or mechanics, feel free to open an Issue!
 - Automatic testing
 - Fuzzy matching for search + card selection
 
-## Refactoring todo 
-- Rework trade monolith function?
-- ~Dynamic triggers~
-
 To add cards, use the New Card.py file and "fill in the blanks". 
 
 [Custom Card Documentation](https://github.com/Pazda/discordTCG/wiki)
